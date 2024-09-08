@@ -10,6 +10,10 @@ const {
   updateDepartment,
   removeDepartment,
   getAdministrationData,
+  getHolidays,
+  addHoliday,
+  updateHoliday,
+  removeHoliday,
 } = require("../controllers/AdministrationController");
 const router = express.Router();
 
@@ -34,17 +38,21 @@ router.options("*", cors());
 router.get("", getAdministrationData);
 router.get("/positions", getPositions);
 router.get("/departments", getDepartments);
+router.get("/holidays", getHolidays);
 
 //Create
 router.post("/position", addPosition);
 router.post("/department", addDepartment);
+router.post("/holiday", addHoliday);
 
 //Update
 router.put("/position", updatePosition);
 router.put("/department", updateDepartment);
+router.put("/holiday", updateHoliday);
 
 //Delete
 router.delete("/position", removePosition);
 router.delete("/department", removeDepartment);
+router.delete("/holiday", removeHoliday);
 
 module.exports = router;
