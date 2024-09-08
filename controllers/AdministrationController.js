@@ -36,11 +36,14 @@ const getAdministrationData = async (req, res) => {
 //Positions
 const getPositions = async (req, res) => {
   try {
-    const positionsRaw = await Position.find();
+    const positionsRaw = await Position.find().populate({
+      path: "departmentId",
+      model: "Department",
+    });
     const positions = positionsRaw.map((position) => ({
       positionId: position.positionId,
       position: position.position,
-      department: position.department,
+      department: position.departmentId.department,
       isActive: position.isActive,
     }));
     res.json(positions);
@@ -48,7 +51,22 @@ const getPositions = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-const addPosition = async (req, res) => {};
+const addPosition = async (req, res) => {
+  const { position, departmentId, isActive } = req.body;
+
+  try {
+    const department = await Department.findById(departmentId);
+    if (!department)
+      return res.status(404).json({ message: "Department not found" });
+
+    const newPosition = new Position({ position, departmentId, isActive });
+    await newPosition.save();
+    res.json(newPosition);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: err.message });
+  }
+};
 const removePosition = async (req, res) => {};
 const updatePosition = async (req, res) => {};
 
@@ -73,10 +91,14 @@ const getDepartments = async (req, res) => {
 
 const addDepartment = async (req, res) => {
   console.log(req.body);
-  const { department, isActive } = req.body;
+  const { department, isActive, departmentTypeId } = req.body;
 
   try {
-    const newDepartment = new Department({ department, isActive });
+    const newDepartment = new Department({
+      department,
+      isActive,
+      departmentTypeId,
+    });
     await newDepartment.save();
     res.json(newDepartment);
   } catch (err) {
