@@ -32,7 +32,7 @@ const addUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new DynamicUserModel({
-      userName: username,
+      userName: username.toLowerCase(),
       password: hashedPassword,
     });
     await newUser.save();
@@ -61,7 +61,9 @@ const login = async (req, res) => {
 
     const companyDb = mongoose.connection.useDb(client.dbName);
     const DynamicUserModel = companyDb.model("User", User.schema, "users");
-    const user = await DynamicUserModel.findOne({ userName: username });
+    const user = await DynamicUserModel.findOne({
+      userName: username.toLowerCase(),
+    });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid username or password" });
@@ -84,6 +86,7 @@ const login = async (req, res) => {
       userId: user._id,
       username: user.userName,
       clientCode: client.clientCode,
+      clientLocation: client.clientLocation,
       client: client.client,
       token,
       activeTime: new Date().toISOString(),
