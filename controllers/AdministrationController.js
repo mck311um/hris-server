@@ -2,6 +2,7 @@ const Position = require("../models/administration/position");
 const Department = require("../models/administration/department");
 const DepartmentType = require("../models/administration/departmentType");
 const Holiday = require("../models/administration/holiday");
+const Location = require("../models/administration/location");
 
 const formatDate = (date) => {
   const year = date.getUTCFullYear();
@@ -17,6 +18,7 @@ const getAdministrationData = async (req, res) => {
     const departmentsRaw = await Department.find();
     const departmentTypesRaw = await DepartmentType.find();
     const holidaysRaw = await Holiday.find();
+    const locationsRaw = await Location.find();
 
     const positions = positionsRaw.map((position) => ({
       positionId: position._id,
@@ -46,7 +48,14 @@ const getAdministrationData = async (req, res) => {
       isOff: holiday.isOff,
     }));
 
-    res.json({ positions, departments, departmentTypes, holidays });
+    const locations = locationsRaw.map((location) => ({
+      locationId: location._id,
+      location: location.location,
+      isActive: location.isActive,
+      isMain: location.isMain,
+    }));
+
+    res.json({ positions, departments, departmentTypes, holidays, locations });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -102,7 +111,19 @@ const updatePosition = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
-const removePosition = async (req, res) => {};
+const removePosition = async (req, res) => {
+  const { positionId } = req.params;
+
+  try {
+    const position = await Position.findByIdAndDelete(positionId);
+    if (!position)
+      return res.status(404).json({ message: "Position not found" });
+    res.json(position);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+};
 
 //Departments
 const getDepartments = async (req, res) => {
@@ -139,7 +160,6 @@ const addDepartment = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
-const removeDepartment = async (req, res) => {};
 const updateDepartment = async (req, res) => {
   const { departmentId, department, isActive, departmentTypeId } = req.body;
 
@@ -153,6 +173,18 @@ const updateDepartment = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(400).json({ message: err.message });
+  }
+};
+const removeDepartment = async (req, res) => {
+  const { departmentId } = req.params;
+  try {
+    const department = await Department.findByIdAndDelete(departmentId);
+    if (!department)
+      return res.status(404).json({ message: "Department not found" });
+    res.json(department);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -231,7 +263,74 @@ const updateHoliday = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
-const removeHoliday = async (req, res) => {};
+const removeHoliday = async (req, res) => {
+  const { holidayId } = req.params;
+
+  try {
+    const holiday = await Holiday.findByIdAndDelete(holidayId);
+    if (!holiday) return res.status(404).json({ message: "Holiday not found" });
+    res.json(holiday);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//Locations
+const getLocations = async (req, res) => {
+  try {
+    const locationsRaw = await Location.find();
+    const locations = locationsRaw.map((location) => ({
+      locationId: location._id,
+      location: location.location,
+      isActive: location.isActive,
+      isMain: location.isMain,
+    }));
+    res.json(locations);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+const addLocation = async (req, res) => {
+  const { location, isActive, isMain } = req.body;
+
+  try {
+    const newLocation = new Location({ location, isActive, isMain });
+    await newLocation.save();
+    res.json(newLocation);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: err.message });
+  }
+};
+const updateLocation = async (req, res) => {
+  const { locationId, location, isActive, isMain } = req.body;
+
+  try {
+    const updatedLocation = await Location.findByIdAndUpdate(
+      locationId,
+      { location, isActive, isMain },
+      { new: true }
+    );
+    res.json(updatedLocation);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: err.message });
+  }
+};
+const removeLocation = async (req, res) => {
+  const { locationId } = req.params;
+
+  try {
+    const location = await Location.findByIdAndDelete(locationId);
+    if (!location)
+      return res.status(404).json({ message: "Location not found" });
+    res.json(location);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
+  }
+};
 
 module.exports = {
   getAdministrationData,
@@ -247,4 +346,8 @@ module.exports = {
   addHoliday,
   removeHoliday,
   updateHoliday,
+  getLocations,
+  addLocation,
+  removeLocation,
+  updateLocation,
 };
