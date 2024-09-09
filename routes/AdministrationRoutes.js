@@ -20,6 +20,7 @@ const {
   removeLocation,
 } = require("../controllers/AdministrationController");
 const router = express.Router();
+const requireAuth = require("../middleware/requireAuth");
 
 const allowedOrigins = ["http://localhost:5173"];
 
@@ -37,6 +38,7 @@ router.use(
 );
 
 router.options("*", cors());
+router.use(requireAuth);
 
 //Fetch
 router.get("", getAdministrationData);
