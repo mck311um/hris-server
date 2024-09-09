@@ -18,6 +18,11 @@ const {
   addLocation,
   updateLocation,
   removeLocation,
+  getFInstitutions,
+  addFInstitutions,
+  addFInstitution,
+  updateFInstitution,
+  removeFInstitution,
 } = require("../controllers/AdministrationController");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
@@ -46,23 +51,27 @@ router.get("/positions", getPositions);
 router.get("/departments", getDepartments);
 router.get("/holidays", getHolidays);
 router.get("/locations", getLocations);
+router.get("/fInstitutions", getFInstitutions);
 
 //Create
 router.post("/position", addPosition);
 router.post("/department", addDepartment);
 router.post("/holiday", addHoliday);
 router.post("/location", addLocation);
+router.post("/fInstitutions", addFInstitution);
 
 //Update
 router.put("/position", updatePosition);
 router.put("/department", updateDepartment);
 router.put("/holiday", updateHoliday);
 router.put("/location", updateLocation);
+router.put("/fInstitutions", updateFInstitution);
 
 //Delete
 router.delete("/position/:positionId", removePosition);
 router.delete("/department/:departmentId", removeDepartment);
 router.delete("/holiday/:holidayId", removeHoliday);
 router.delete("/location/:locationId", removeLocation);
+router.delete("/fInstitutions/:fInstitutionId", removeFInstitution);
 
 module.exports = router;

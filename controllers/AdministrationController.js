@@ -1,8 +1,10 @@
-const Position = require("../models/administration/position");
-const Department = require("../models/administration/department");
-const DepartmentType = require("../models/administration/departmentType");
-const Holiday = require("../models/administration/holiday");
-const Location = require("../models/administration/location");
+const mongoose = require("mongoose");
+const Country = require("../models/administration/countries");
+const Village = require("../models/administration/villages");
+const WorkStatus = require("../models/administration/workStatus");
+const EmploymentType = require("../models/administration/employmentType");
+const Relationship = require("../models/administration/relationship");
+const PayType = require("../models/administration/payType");
 
 const formatDate = (date) => {
   const year = date.getUTCFullYear();
@@ -11,14 +13,68 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const getModel = (db, modelName, schemaPath) => {
+  const schema = require(schemaPath).schema;
+  return db.model(modelName, schema, modelName.toLowerCase() + "s");
+};
+
 //Get All
 const getAdministrationData = async (req, res) => {
+  const { clientDB } = req;
   try {
-    const positionsRaw = await Position.find();
-    const departmentsRaw = await Department.find();
-    const departmentTypesRaw = await DepartmentType.find();
-    const holidaysRaw = await Holiday.find();
-    const locationsRaw = await Location.find();
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+    const DepartmentType = getModel(
+      companyDb,
+      "DepartmentType",
+      "../models/administration/departmentType"
+    );
+    const Holiday = getModel(
+      companyDb,
+      "Holiday",
+      "../models/administration/holiday"
+    );
+    const Location = getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+    const FInstitution = getModel(
+      companyDb,
+      "FInstitution",
+      "../models/administration/fInstitution.js"
+    );
+
+    const positionsRaw = await Position.find().sort({ position: 1 });
+    const departmentsRaw = await Department.find().sort({ department: 1 });
+    const departmentTypesRaw = await DepartmentType.find().sort({
+      departmentType: 1,
+    });
+    const holidaysRaw = await Holiday.find().sort({ holiday: 1 });
+    const locationsRaw = await Location.find().sort({ location: 1 });
+    const countriesRaw = await Country.find().sort({ country: 1 });
+    const villagesRaw = await Village.find().sort({ village: 1 });
+    const workStatusesRaw = await WorkStatus.find().sort({ workStatus: 1 });
+    const employmentTypesRaw = await EmploymentType.find().sort({
+      employmentType: 1,
+    });
+    const relationshipsRaw = await Relationship.find().sort({
+      relationship: 1,
+    });
+    const payTypesRaw = await PayType.find().sort({ payType: 1 });
+    const fInstitutionsRaw = await FInstitution.find().sort({
+      fInstitution: 1,
+    });
 
     const positions = positionsRaw.map((position) => ({
       positionId: position._id,
@@ -53,9 +109,63 @@ const getAdministrationData = async (req, res) => {
       location: location.location,
       isActive: location.isActive,
       isMain: location.isMain,
+      address: location.address,
     }));
 
-    res.json({ positions, departments, departmentTypes, holidays, locations });
+    const countries = countriesRaw.map((country) => ({
+      countryId: country._id,
+      country: country.country,
+      countryCode: country.countryCode,
+    }));
+
+    const villages = villagesRaw.map((village) => ({
+      villageId: village._id,
+      village: village.village,
+      countryCode: village.countryCode,
+    }));
+
+    const workStatuses = workStatusesRaw.map((workStatus) => ({
+      workStatusId: workStatus._id,
+      workStatus: workStatus.workStatus,
+    }));
+
+    const employmentTypes = employmentTypesRaw.map((employmentType) => ({
+      employmentTypeId: employmentType._id,
+      employmentType: employmentType.employmentType,
+    }));
+
+    const relationships = relationshipsRaw.map((relationship) => ({
+      relationshipId: relationship._id,
+      relationship: relationship.relationship,
+    }));
+
+    const payTypes = payTypesRaw.map((payType) => ({
+      payTypeId: payType._id,
+      payType: payType.payType,
+    }));
+
+    const fInstitutions = fInstitutionsRaw.map((fInstitution) => ({
+      fInstitutionId: fInstitution._id,
+      fInstitution: fInstitution.fInstitution,
+      isActive: fInstitution.isActive,
+      fInstitutionCode: fInstitution.fInstitutionCode,
+      fInstitutionAddress: fInstitution.fInstitutionAddress,
+    }));
+
+    res.json({
+      positions,
+      departments,
+      departmentTypes,
+      holidays,
+      locations,
+      countries,
+      villages,
+      workStatuses,
+      employmentTypes,
+      relationships,
+      payTypes,
+      fInstitutions,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -63,7 +173,23 @@ const getAdministrationData = async (req, res) => {
 
 //Positions
 const getPositions = async (req, res) => {
+  const { clientDB } = req;
+
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
     const positionsRaw = await Position.find().populate({
       path: "departmentId",
       model: "Department",
@@ -80,9 +206,23 @@ const getPositions = async (req, res) => {
   }
 };
 const addPosition = async (req, res) => {
+  const { clientDB } = req;
   const { position, departmentId, isActive } = req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
     const department = await Department.findById(departmentId);
     if (!department)
       return res.status(404).json({ message: "Department not found" });
@@ -96,9 +236,18 @@ const addPosition = async (req, res) => {
   }
 };
 const updatePosition = async (req, res) => {
+  const { clientDB } = req;
   const { positionId, position, departmentId, isActive } = req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+
     const newPosition = await Position.findByIdAndUpdate(positionId, {
       position,
       departmentId,
@@ -112,9 +261,18 @@ const updatePosition = async (req, res) => {
   }
 };
 const removePosition = async (req, res) => {
+  const { clientDB } = req;
   const { positionId } = req.params;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+
     const position = await Position.findByIdAndDelete(positionId);
     if (!position)
       return res.status(404).json({ message: "Position not found" });
@@ -127,7 +285,23 @@ const removePosition = async (req, res) => {
 
 //Departments
 const getDepartments = async (req, res) => {
+  const { clientDB } = req;
+
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
+    const DepartmentType = getModel(
+      companyDb,
+      "DepartmentType",
+      "../models/administration/departmentType"
+    );
+
     const departmentsRaw = await Department.find().populate({
       path: "departmentTypeId",
       model: "DepartmentType",
@@ -144,10 +318,19 @@ const getDepartments = async (req, res) => {
   }
 };
 const addDepartment = async (req, res) => {
-  console.log(req.body);
+  const { clientDB } = req;
+
   const { department, isActive, departmentTypeId } = req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
     const newDepartment = new Department({
       department,
       isActive,
@@ -161,9 +344,18 @@ const addDepartment = async (req, res) => {
   }
 };
 const updateDepartment = async (req, res) => {
+  const { clientDB } = req;
   const { departmentId, department, isActive, departmentTypeId } = req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
     const updatedDepartment = await Department.findByIdAndUpdate(
       departmentId,
       { department, isActive, departmentTypeId },
@@ -176,8 +368,17 @@ const updateDepartment = async (req, res) => {
   }
 };
 const removeDepartment = async (req, res) => {
+  const { clientDB } = req;
   const { departmentId } = req.params;
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
     const department = await Department.findByIdAndDelete(departmentId);
     if (!department)
       return res.status(404).json({ message: "Department not found" });
@@ -190,7 +391,15 @@ const removeDepartment = async (req, res) => {
 
 //Holidays
 const getHolidays = async (req, res) => {
+  const { clientDB } = req;
+
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Holiday = getModel(
+      companyDb,
+      "Holiday",
+      "../models/administration/holiday"
+    );
     const holidaysRaw = await Holiday.find();
     const now = new Date();
 
@@ -227,11 +436,19 @@ const getHolidays = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 const addHoliday = async (req, res) => {
+  const { clientDB } = req;
+
   const { holiday, date, observedDate, hasPassed, isPublic, isOff } = req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Holiday = getModel(
+      companyDb,
+      "Holiday",
+      "../models/administration/holiday"
+    );
     const newHoliday = new Holiday({
       holiday,
       date,
@@ -248,10 +465,20 @@ const addHoliday = async (req, res) => {
   }
 };
 const updateHoliday = async (req, res) => {
+  const { clientDB } = req;
+
   const { holidayId, holiday, date, observedDate, hasPassed, isPublic, isOff } =
     req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Holiday = getModel(
+      companyDb,
+      "Holiday",
+      "../models/administration/holiday"
+    );
+
     const updatedHoliday = await Holiday.findByIdAndUpdate(
       holidayId,
       { holiday, date, observedDate, hasPassed, isPublic, isOff },
@@ -264,9 +491,19 @@ const updateHoliday = async (req, res) => {
   }
 };
 const removeHoliday = async (req, res) => {
+  const { clientDB } = req;
+
   const { holidayId } = req.params;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Holiday = getModel(
+      companyDb,
+      "Holiday",
+      "../models/administration/holiday"
+    );
+
     const holiday = await Holiday.findByIdAndDelete(holidayId);
     if (!holiday) return res.status(404).json({ message: "Holiday not found" });
     res.json(holiday);
@@ -278,13 +515,24 @@ const removeHoliday = async (req, res) => {
 
 //Locations
 const getLocations = async (req, res) => {
+  const { clientDB } = req;
+
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Location = getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+
     const locationsRaw = await Location.find();
     const locations = locationsRaw.map((location) => ({
       locationId: location._id,
       location: location.location,
       isActive: location.isActive,
       isMain: location.isMain,
+      address: location.address,
     }));
     res.json(locations);
   } catch (err) {
@@ -292,10 +540,20 @@ const getLocations = async (req, res) => {
   }
 };
 const addLocation = async (req, res) => {
-  const { location, isActive, isMain } = req.body;
+  const { clientDB } = req;
+
+  const { location, isActive, isMain, address } = req.body;
 
   try {
-    const newLocation = new Location({ location, isActive, isMain });
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Location = getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+
+    const newLocation = new Location({ location, isActive, isMain, address });
     await newLocation.save();
     res.json(newLocation);
   } catch (err) {
@@ -304,12 +562,22 @@ const addLocation = async (req, res) => {
   }
 };
 const updateLocation = async (req, res) => {
-  const { locationId, location, isActive, isMain } = req.body;
+  const { clientDB } = req;
+
+  const { locationId, location, isActive, isMain, address } = req.body;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Location = getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+
     const updatedLocation = await Location.findByIdAndUpdate(
       locationId,
-      { location, isActive, isMain },
+      { location, isActive, isMain, address },
       { new: true }
     );
     res.json(updatedLocation);
@@ -319,9 +587,19 @@ const updateLocation = async (req, res) => {
   }
 };
 const removeLocation = async (req, res) => {
+  const { clientDB } = req;
+
   const { locationId } = req.params;
 
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const Location = getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+
     const location = await Location.findByIdAndDelete(locationId);
     if (!location)
       return res.status(404).json({ message: "Location not found" });
@@ -329,6 +607,118 @@ const removeLocation = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+//FInstitutions
+const getFInstitutions = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const FInstitution = getModel(
+      companyDb,
+      "FInstitution",
+      "../models/administration/fInstitution.js"
+    );
+    const fInstitutionsRaw = await FInstitution.find();
+    const fInstitutions = fInstitutionsRaw.map((fInstitution) => ({
+      fInstitutionId: fInstitution._id,
+      fInstitution: fInstitution.fInstitution,
+      isActive: fInstitution.isActive,
+      fInstitutionCode: fInstitution.fInstitutionCode,
+      fInstitutionAddress: fInstitution.fInstitutionAddress,
+    }));
+    res.json(fInstitutions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const addFInstitution = async (req, res) => {
+  const { clientDB } = req;
+  const {
+    fInstitution,
+    fInstitutionCode,
+    fInstitutionAddress,
+    isActive,
+    isCreditor,
+  } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const FInstitution = getModel(
+      companyDb,
+      "FInstitution",
+      "../models/administration/fInstitution.js"
+    );
+    const newFInstitution = new FInstitution({
+      fInstitution,
+      fInstitutionCode,
+      fInstitutionAddress,
+      isActive,
+      isCreditor,
+    });
+    await newFInstitution.save();
+    res.json(newFInstitution);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const updateFInstitution = async (req, res) => {
+  const { clientDB } = req;
+  const {
+    fInstitutionId,
+    fInstitution,
+    fInstitutionCode,
+    fInstitutionAddress,
+    isActive,
+    isCreditor,
+  } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const FInstitution = getModel(
+      companyDb,
+      "FInstitution",
+      "../models/administration/fInstitution.js"
+    );
+    const updatedFInstitution = await FInstitution.findByIdAndUpdate(
+      fInstitutionId,
+      {
+        fInstitution,
+        fInstitutionCode,
+        fInstitutionAddress,
+        isActive,
+        isCreditor,
+      },
+      { new: true }
+    );
+    res.json(updatedFInstitution);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const removeFInstitution = async (req, res) => {
+  const { clientDB } = req;
+  const { fInstitutionId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const FInstitution = getModel(
+      companyDb,
+      "FInstitution",
+      "../models/administration/fInstitution.js"
+    );
+    const fInstitution = await FInstitution.findByIdAndDelete(fInstitutionId);
+    if (!fInstitution) {
+      return res
+        .status(404)
+        .json({ message: "Financial Institution not found" });
+    }
+    res.json(fInstitution);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -350,4 +740,8 @@ module.exports = {
   addLocation,
   removeLocation,
   updateLocation,
+  getFInstitutions,
+  addFInstitution,
+  removeFInstitution,
+  updateFInstitution,
 };

@@ -6,6 +6,7 @@ const locationSchema = new Schema({
   location: { type: String },
   isActive: { type: Boolean },
   isMain: { type: Boolean },
+  address: { type: String },
 });
 
 const collection = "locations";

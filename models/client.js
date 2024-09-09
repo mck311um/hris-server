@@ -6,6 +6,7 @@ const clientSchema = new Schema({
   clientCode: { type: String, required: true, unique: true },
   dbName: { type: String, required: true },
   paymentStatus: { type: String, default: "active" },
+  clientLocation: { type: String },
 });
 
 const collection = "clients";
