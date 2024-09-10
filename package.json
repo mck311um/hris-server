@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "hris-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,6 @@
   "description": "",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.645.0",
-    "aws-sdk": "^2.1691.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

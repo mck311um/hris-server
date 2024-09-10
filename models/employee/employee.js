@@ -47,6 +47,8 @@ const employeeSchema = new Schema({
     default: null,
   },
   hireDate: { type: Date, default: Date.now },
+  terminationDate: { type: Date, default: null },
+  isFinite: { type: Boolean, default: true },
   employmentTypeId: {
     type: Schema.Types.ObjectId,
     ref: "EmploymentType",

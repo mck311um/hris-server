@@ -26,7 +26,7 @@ const {
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173", "https://oplis.devvize.com"];
 
 router.use(
   cors({
