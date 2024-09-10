@@ -33,6 +33,7 @@ const requireAuth = async (req, res, next) => {
 
     req.user = user;
     req.clientDB = client.dbName;
+    req.clientCode = client.clientCode;
 
     next();
   } catch (error) {

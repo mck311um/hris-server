@@ -19,7 +19,6 @@ const {
   updateLocation,
   removeLocation,
   getFInstitutions,
-  addFInstitutions,
   addFInstitution,
   updateFInstitution,
   removeFInstitution,
@@ -58,20 +57,20 @@ router.post("/position", addPosition);
 router.post("/department", addDepartment);
 router.post("/holiday", addHoliday);
 router.post("/location", addLocation);
-router.post("/fInstitutions", addFInstitution);
+router.post("/fInstitution", addFInstitution);
 
 //Update
 router.put("/position", updatePosition);
 router.put("/department", updateDepartment);
 router.put("/holiday", updateHoliday);
 router.put("/location", updateLocation);
-router.put("/fInstitutions", updateFInstitution);
+router.put("/fInstitution", updateFInstitution);
 
 //Delete
 router.delete("/position/:positionId", removePosition);
 router.delete("/department/:departmentId", removeDepartment);
 router.delete("/holiday/:holidayId", removeHoliday);
 router.delete("/location/:locationId", removeLocation);
-router.delete("/fInstitutions/:fInstitutionId", removeFInstitution);
+router.delete("/fInstitution/:fInstitutionId", removeFInstitution);
 
 module.exports = router;

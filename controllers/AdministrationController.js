@@ -150,6 +150,7 @@ const getAdministrationData = async (req, res) => {
       isActive: fInstitution.isActive,
       fInstitutionCode: fInstitution.fInstitutionCode,
       fInstitutionAddress: fInstitution.fInstitutionAddress,
+      isCreditor: fInstitution.isCreditor,
     }));
 
     res.json({
@@ -626,6 +627,7 @@ const getFInstitutions = async (req, res) => {
       fInstitutionId: fInstitution._id,
       fInstitution: fInstitution.fInstitution,
       isActive: fInstitution.isActive,
+      isCreditor: fInstitution.isCreditor,
       fInstitutionCode: fInstitution.fInstitutionCode,
       fInstitutionAddress: fInstitution.fInstitutionAddress,
     }));
