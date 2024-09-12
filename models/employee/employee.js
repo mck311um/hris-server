@@ -41,14 +41,14 @@ const employeeSchema = new Schema({
     default: null,
   },
   reportsTo: { type: Schema.Types.ObjectId, ref: "Employee", default: null },
-  assignedLocationId: {
+  locationId: {
     type: Schema.Types.ObjectId,
     ref: "Location",
     default: null,
   },
   hireDate: { type: Date, default: Date.now },
   terminationDate: { type: Date, default: null },
-  isFinite: { type: Boolean, default: true },
+  isActive: { type: Boolean, default: true },
   employmentTypeId: {
     type: Schema.Types.ObjectId,
     ref: "EmploymentType",

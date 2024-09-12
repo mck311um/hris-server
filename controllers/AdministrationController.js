@@ -1,10 +1,5 @@
 const mongoose = require("mongoose");
-const Country = require("../models/administration/countries");
-const Village = require("../models/administration/villages");
-const WorkStatus = require("../models/administration/workStatus");
-const EmploymentType = require("../models/administration/employmentType");
-const Relationship = require("../models/administration/relationship");
-const PayType = require("../models/administration/payType");
+const Permission = require("../models/permission");
 
 const formatDate = (date) => {
   const year = date.getUTCFullYear();
@@ -18,140 +13,249 @@ const getModel = (db, modelName, schemaPath) => {
   return db.model(modelName, schema, modelName.toLowerCase() + "s");
 };
 
+const fetchAndTransformData = async (
+  companyDb,
+  modelName,
+  modelPath,
+  transformFn
+) => {
+  const Model = getModel(companyDb, modelName, modelPath);
+  const rawData = await Model.find().sort({ [modelName]: 1 });
+  return rawData.map(transformFn);
+};
+
 //Get All
 const getAdministrationData = async (req, res) => {
   const { clientDB } = req;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
 
-    const Position = getModel(
-      companyDb,
-      "Position",
-      "../models/administration/position"
-    );
-    const Department = getModel(
-      companyDb,
-      "Department",
-      "../models/administration/department"
-    );
-    const DepartmentType = getModel(
-      companyDb,
-      "DepartmentType",
-      "../models/administration/departmentType"
-    );
-    const Holiday = getModel(
-      companyDb,
-      "Holiday",
-      "../models/administration/holiday"
-    );
-    const Location = getModel(
-      companyDb,
-      "Location",
-      "../models/administration/location"
-    );
-    const FInstitution = getModel(
-      companyDb,
-      "FInstitution",
-      "../models/administration/fInstitution.js"
-    );
+    const data = await Promise.all([
+      fetchAndTransformData(
+        companyDb,
+        "Position",
+        "../models/administration/position",
+        (position) => ({
+          positionId: position._id,
+          position: position.position,
+          departmentId: position.departmentId,
+          isActive: position.isActive,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Department",
+        "../models/administration/department",
+        (department) => ({
+          departmentId: department._id,
+          department: department.department,
+          isActive: department.isActive,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "DepartmentType",
+        "../models/administration/departmentType",
+        (departmentType) => ({
+          departmentTypeId: departmentType._id,
+          departmentType: departmentType.departmentType,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Holiday",
+        "../models/administration/holiday",
+        (holiday) => ({
+          holidayId: holiday._id,
+          holiday: holiday.holiday,
+          date: holiday.date,
+          observedDate: holiday.observedDate,
+          hasPassed: holiday.hasPassed,
+          isPublic: holiday.isPublic,
+          isOff: holiday.isOff,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Location",
+        "../models/administration/location",
+        (location) => ({
+          locationId: location._id,
+          location: location.location,
+          isActive: location.isActive,
+          isMain: location.isMain,
+          address: location.address,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Country",
+        "../models/administration/country",
+        (country) => ({
+          countryId: country._id,
+          country: country.country,
+          countryCode: country.countryCode,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Village",
+        "../models/administration/village",
+        (village) => ({
+          villageId: village._id,
+          village: village.village,
+          countryCode: village.countryCode,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "WorkStatus",
+        "../models/administration/workStatus",
+        (workStatus) => ({
+          workStatusId: workStatus._id,
+          workStatus: workStatus.workStatus,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "EmploymentType",
+        "../models/administration/employmentType",
+        (employmentType) => ({
+          employmentTypeId: employmentType._id,
+          employmentType: employmentType.employmentType,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Relationship",
+        "../models/administration/relationship",
+        (relationship) => ({
+          relationshipId: relationship._id,
+          relationship: relationship.relationship,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "PayType",
+        "../models/administration/payType",
+        (payType) => ({
+          payTypeId: payType._id,
+          payType: payType.payType,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "FInstitution",
+        "../models/administration/fInstitution.js",
+        (fInstitution) => ({
+          fInstitutionId: fInstitution._id,
+          fInstitution: fInstitution.fInstitution,
+          isActive: fInstitution.isActive,
+          fInstitutionCode: fInstitution.fInstitutionCode,
+          fInstitutionAddress: fInstitution.fInstitutionAddress,
+          isCreditor: fInstitution.isCreditor,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Allowance",
+        "../models/administration/allowance",
+        (allowance) => ({
+          allowanceId: allowance._id,
+          allowance: allowance.allowance,
+          description: allowance.description,
+          isActive: allowance.isActive,
+          allowance: allowance.allowance,
+          description: allowance.description,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "Deduction",
+        "../models/administration/deduction",
+        (deduction) => ({
+          deductionId: deduction._id,
+          deduction: deduction.deduction,
+          description: deduction.description,
+          isActive: deduction.isActive,
+        })
+      ),
+      fetchAndTransformData(
+        companyDb,
+        "UserRole",
+        "../models/administration/userRole",
+        (userRole) => ({
+          userRoleId: userRole._id,
+          userRole: userRole.userRole,
+          isActive: userRole.isActive,
+          userRole: userRole.userRole,
+          description: userRole.description,
+        })
+      ),
+    ]);
 
-    const positionsRaw = await Position.find().sort({ position: 1 });
-    const departmentsRaw = await Department.find().sort({ department: 1 });
-    const departmentTypesRaw = await DepartmentType.find().sort({
-      departmentType: 1,
+    const [
+      positions,
+      departments,
+      departmentTypes,
+      holidays,
+      locations,
+      countries,
+      villages,
+      workStatuses,
+      employmentTypes,
+      relationships,
+      payTypes,
+      fInstitutions,
+      allowances,
+      deductions,
+      userRoles,
+    ] = data;
+
+    const permissionsRaw = await Permission.find().sort({ permission: 1 });
+    const permissions = permissionsRaw.map((permission) => ({
+      permissionId: permission._id,
+      permissionType: permission.permissionType,
+      permission: permission.permission,
+      description: permission.description,
+    }));
+
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+    const employees = await Employee.find({ isActive: false });
+
+    const positionCounts = {};
+    const departmentCounts = {};
+    const locationCounts = {};
+
+    employees.forEach((employee) => {
+      const { positionId, departmentId, locationId } = employee;
+      if (positionId) {
+        positionCounts[positionId] = (positionCounts[positionId] || 0) + 1;
+      }
+      if (departmentId) {
+        departmentCounts[departmentId] =
+          (departmentCounts[departmentId] || 0) + 1;
+      }
+      if (locationId) {
+        locationCounts[locationId] = (locationCounts[locationId] || 0) + 1;
+      }
     });
-    const holidaysRaw = await Holiday.find().sort({ holiday: 1 });
-    const locationsRaw = await Location.find().sort({ location: 1 });
-    const countriesRaw = await Country.find().sort({ country: 1 });
-    const villagesRaw = await Village.find().sort({ village: 1 });
-    const workStatusesRaw = await WorkStatus.find().sort({ workStatus: 1 });
-    const employmentTypesRaw = await EmploymentType.find().sort({
-      employmentType: 1,
-    });
-    const relationshipsRaw = await Relationship.find().sort({
-      relationship: 1,
-    });
-    const payTypesRaw = await PayType.find().sort({ payType: 1 });
-    const fInstitutionsRaw = await FInstitution.find().sort({
-      fInstitution: 1,
+
+    positions.forEach((position) => {
+      position.employeeCount = positionCounts[position.positionId] || 0;
     });
 
-    const positions = positionsRaw.map((position) => ({
-      positionId: position._id,
-      position: position.position,
-      departmentId: position.departmentId,
-      isActive: position.isActive,
-    }));
+    departments.forEach((department) => {
+      department.employeeCount = departmentCounts[department.departmentId] || 0;
+    });
 
-    const departments = departmentsRaw.map((department) => ({
-      departmentId: department._id,
-      department: department.department,
-      isActive: department.isActive,
-    }));
-
-    const departmentTypes = departmentTypesRaw.map((departmentType) => ({
-      departmentTypeId: departmentType._id,
-      departmentType: departmentType.departmentType,
-    }));
-
-    const holidays = holidaysRaw.map((holiday) => ({
-      holidayId: holiday._id,
-      holiday: holiday.holiday,
-      date: holiday.date,
-      observedDate: holiday.observedDate,
-      hasPassed: holiday.hasPassed,
-      isPublic: holiday.isPublic,
-      isOff: holiday.isOff,
-    }));
-
-    const locations = locationsRaw.map((location) => ({
-      locationId: location._id,
-      location: location.location,
-      isActive: location.isActive,
-      isMain: location.isMain,
-      address: location.address,
-    }));
-
-    const countries = countriesRaw.map((country) => ({
-      countryId: country._id,
-      country: country.country,
-      countryCode: country.countryCode,
-    }));
-
-    const villages = villagesRaw.map((village) => ({
-      villageId: village._id,
-      village: village.village,
-      countryCode: village.countryCode,
-    }));
-
-    const workStatuses = workStatusesRaw.map((workStatus) => ({
-      workStatusId: workStatus._id,
-      workStatus: workStatus.workStatus,
-    }));
-
-    const employmentTypes = employmentTypesRaw.map((employmentType) => ({
-      employmentTypeId: employmentType._id,
-      employmentType: employmentType.employmentType,
-    }));
-
-    const relationships = relationshipsRaw.map((relationship) => ({
-      relationshipId: relationship._id,
-      relationship: relationship.relationship,
-    }));
-
-    const payTypes = payTypesRaw.map((payType) => ({
-      payTypeId: payType._id,
-      payType: payType.payType,
-    }));
-
-    const fInstitutions = fInstitutionsRaw.map((fInstitution) => ({
-      fInstitutionId: fInstitution._id,
-      fInstitution: fInstitution.fInstitution,
-      isActive: fInstitution.isActive,
-      fInstitutionCode: fInstitution.fInstitutionCode,
-      fInstitutionAddress: fInstitution.fInstitutionAddress,
-      isCreditor: fInstitution.isCreditor,
-    }));
+    locations.forEach((location) => {
+      location.employeeCount = locationCounts[location.locationId] || 0;
+    });
 
     res.json({
       positions,
@@ -166,6 +270,10 @@ const getAdministrationData = async (req, res) => {
       relationships,
       payTypes,
       fInstitutions,
+      allowances,
+      deductions,
+      userRoles,
+      permissions,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -191,6 +299,24 @@ const getPositions = async (req, res) => {
       "../models/administration/department"
     );
 
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const employees = await Employee.find({ isActive: true });
+
+    const positionCounts = {};
+
+    employees.forEach((employee) => {
+      const { positionId } = employee;
+
+      if (positionId) {
+        positionCounts[positionId] = (positionCounts[positionId] || 0) + 1;
+      }
+    });
+
     const positionsRaw = await Position.find().populate({
       path: "departmentId",
       model: "Department",
@@ -200,6 +326,7 @@ const getPositions = async (req, res) => {
       position: position.position,
       department: position.departmentId.department,
       isActive: position.isActive,
+      employeeCount: positionCounts[position._id] || 0,
     }));
     res.json(positions);
   } catch (err) {
@@ -303,6 +430,25 @@ const getDepartments = async (req, res) => {
       "../models/administration/departmentType"
     );
 
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const employees = await Employee.find({ isActive: true });
+
+    const departmentCount = {};
+
+    employees.forEach((employee) => {
+      const { departmentId } = employee;
+
+      if (departmentId) {
+        departmentCount[departmentId] =
+          (departmentCount[departmentId] || 0) + 1;
+      }
+    });
+
     const departmentsRaw = await Department.find().populate({
       path: "departmentTypeId",
       model: "DepartmentType",
@@ -312,6 +458,7 @@ const getDepartments = async (req, res) => {
       department: department.department,
       isActive: department.isActive,
       departmentType: department.departmentTypeId.departmentType,
+      employeeCount: departmentCount[department._id] || 0,
     }));
     res.json(departments);
   } catch (err) {
@@ -527,6 +674,24 @@ const getLocations = async (req, res) => {
       "../models/administration/location"
     );
 
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const employees = await Employee.find({ isActive: true });
+
+    const locationCounts = {};
+
+    employees.forEach((employee) => {
+      const { locationId } = employee;
+
+      if (locationId) {
+        locationCounts[locationId] = (locationCounts[locationId] || 0) + 1;
+      }
+    });
+
     const locationsRaw = await Location.find();
     const locations = locationsRaw.map((location) => ({
       locationId: location._id,
@@ -534,6 +699,7 @@ const getLocations = async (req, res) => {
       isActive: location.isActive,
       isMain: location.isMain,
       address: location.address,
+      employeeCount: locationCounts[location._id] || 0,
     }));
     res.json(locations);
   } catch (err) {
@@ -628,6 +794,7 @@ const getFInstitutions = async (req, res) => {
       fInstitution: fInstitution.fInstitution,
       isActive: fInstitution.isActive,
       isCreditor: fInstitution.isCreditor,
+      bankType: fInstitution.isCreditor ? "Creditor" : "Bank/Creditor",
       fInstitutionCode: fInstitution.fInstitutionCode,
       fInstitutionAddress: fInstitution.fInstitutionAddress,
     }));
@@ -724,6 +891,326 @@ const removeFInstitution = async (req, res) => {
   }
 };
 
+//Allowances
+const getAllowances = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Allowance = getModel(
+      companyDb,
+      "Allowance",
+      "../models/administration/allowance"
+    );
+    const allowancesRaw = await Allowance.find();
+    const allowances = allowancesRaw.map((allowance) => ({
+      allowanceId: allowance._id,
+      allowance: allowance.allowance,
+      description: allowance.description,
+      isActive: allowance.isActive,
+      amount: allowance.amount,
+    }));
+    res.json(allowances);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const addAllowance = async (req, res) => {
+  const { clientDB } = req;
+  const { allowance, description, isActive } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Allowance = getModel(
+      companyDb,
+      "Allowance",
+      "../models/administration/allowance"
+    );
+    const newAllowance = new Allowance({
+      allowance,
+      description,
+      isActive,
+    });
+    await newAllowance.save();
+    res.json(newAllowance);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const updateAllowance = async (req, res) => {
+  const { clientDB } = req;
+  const { allowanceId, allowance, description, isActive } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Allowance = getModel(
+      companyDb,
+      "Allowance",
+      "../models/administration/allowance"
+    );
+    const updatedAllowance = await Allowance.findByIdAndUpdate(
+      allowanceId,
+      { allowance, description, isActive, updatedAt: new Date() },
+      { new: true }
+    );
+    res.json(updatedAllowance);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const removeAllowance = async (req, res) => {
+  const { clientDB } = req;
+  const { allowanceId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Allowance = getModel(
+      companyDb,
+      "Allowance",
+      "../models/administration/allowance"
+    );
+    const allowance = await Allowance.findByIdAndDelete(allowanceId);
+    if (!allowance)
+      return res.status(404).json({ message: "Allowance not found" });
+    res.json(allowance);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+//Deductions
+const getDeductions = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Deduction = getModel(
+      companyDb,
+      "Deduction",
+      "../models/administration/deduction"
+    );
+    const deductionsRaw = await Deduction.find();
+    const deductions = deductionsRaw.map((deduction) => ({
+      deductionId: deduction._id,
+      deduction: deduction.deduction,
+      description: deduction.description,
+      isActive: deduction.isActive,
+    }));
+    res.json(deductions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const addDeduction = async (req, res) => {
+  const { clientDB } = req;
+  const { deduction, description, isActive } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Deduction = getModel(
+      companyDb,
+      "Deduction",
+      "../models/administration/deduction"
+    );
+    const newDeduction = new Deduction({
+      deduction,
+      description,
+      isActive,
+    });
+    await newDeduction.save();
+    res.json(newDeduction);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const updateDeduction = async (req, res) => {
+  const { clientDB } = req;
+  const { deductionId, deduction, description, isActive } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Deduction = getModel(
+      companyDb,
+      "Deduction",
+      "../models/administration/deduction"
+    );
+    const updatedDeduction = await Deduction.findByIdAndUpdate(
+      deductionId,
+      { deduction, description, isActive, amount, updatedAt: new Date() },
+      { new: true }
+    );
+    res.json(updatedDeduction);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const removeDeduction = async (req, res) => {
+  const { clientDB } = req;
+  const { deductionId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Deduction = getModel(
+      companyDb,
+      "Deduction",
+      "../models/administration/deduction"
+    );
+    const deduction = await Deduction.findByIdAndDelete(deductionId);
+    if (!deduction)
+      return res.status(404).json({ message: "Deduction not found" });
+    res.json(deduction);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+//User Roles
+const getUserRoles = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const userRolesRaw = await UserRole.find().populate({
+      path: "permissions",
+    });
+    const userRoles = userRolesRaw.map((userRole) => ({
+      userRoleId: userRole._id,
+      isActive: userRole.isActive,
+      userRole: userRole.userRole,
+      description: userRole.description,
+      permissions: userRole.permissions.map((permission) => ({
+        permissionId: permission._id,
+        permission: permission.permission,
+        description: permission.description,
+      })),
+    }));
+    res.json(userRoles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const addUserRole = async (req, res) => {
+  const { clientDB } = req;
+  const { userRole, description, isActive } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const newUserRole = new UserRole({
+      userRole,
+      description,
+      isActive,
+    });
+    await newUserRole.save();
+    res.json(newUserRole);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const updateUserRole = async (req, res) => {
+  const { clientDB } = req;
+  const { userRoleId, description, userRole, isActive } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const updatedUserRole = await UserRole.findByIdAndUpdate(
+      userRoleId,
+      { userRole, isActive, description, updatedAt: new Date() },
+      { new: true }
+    );
+    res.json(updatedUserRole);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const removeUserRole = async (req, res) => {
+  const { clientDB } = req;
+  const { userRoleId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const userRole = await UserRole.findByIdAndDelete(userRoleId);
+    if (!userRole)
+      return res.status(404).json({ message: "User Role not found" });
+    res.json(userRole);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+const addPermissionToRole = async (req, res) => {
+  const { clientDB } = req;
+  const { userRoleId, permissionId } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const userRole = await UserRole.findById(userRoleId).populate({
+      path: "permissions",
+    });
+
+    if (!userRole)
+      return res.status(404).json({ message: "User Role not found" });
+
+    const permission = userRole.permissions.find(
+      (p) => p._id.toString() === permissionId
+    );
+    if (permission)
+      return res.status(400).json({ message: "Permission already exists" });
+
+    userRole.permissions.push(permissionId);
+    await userRole.save();
+
+    res.json(userRole);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//Permissions
+const getPermissions = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const permissionsRaw = await Permission.find();
+    const permissions = permissionsRaw.map((permission) => ({
+      permissionId: permission._id,
+      permission: permission.permission,
+      description: permission.description,
+      isActive: permission.isActive,
+    }));
+    res.json(permissions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAdministrationData,
   getPositions,
@@ -746,4 +1233,18 @@ module.exports = {
   addFInstitution,
   removeFInstitution,
   updateFInstitution,
+  getAllowances,
+  addAllowance,
+  removeAllowance,
+  updateAllowance,
+  getDeductions,
+  addDeduction,
+  removeDeduction,
+  updateDeduction,
+  getUserRoles,
+  addUserRole,
+  removeUserRole,
+  updateUserRole,
+  getPermissions,
+  addPermissionToRole,
 };

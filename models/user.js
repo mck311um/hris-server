@@ -3,7 +3,8 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema({
   userName: { type: String, required: true },
-  name: { type: String },
+  roleId: { type: Schema.Types.ObjectId, ref: "UserRole", default: null },
+  employeeId: { type: String, required: true },
   password: { type: String, required: true },
   requirePasswordChange: { type: Boolean },
 });

@@ -1,28 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const {
-  getPositions,
-  addPosition,
-  updatePosition,
-  removePosition,
-  getDepartments,
-  addDepartment,
-  updateDepartment,
-  removeDepartment,
-  getAdministrationData,
-  getHolidays,
-  addHoliday,
-  updateHoliday,
-  removeHoliday,
-  getLocations,
-  addLocation,
-  updateLocation,
-  removeLocation,
-  getFInstitutions,
-  addFInstitution,
-  updateFInstitution,
-  removeFInstitution,
-} = require("../controllers/AdministrationController");
+
+const controller = require("../controllers/AdministrationController");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 
@@ -45,32 +24,46 @@ router.options("*", cors());
 router.use(requireAuth);
 
 //Fetch
-router.get("", getAdministrationData);
-router.get("/positions", getPositions);
-router.get("/departments", getDepartments);
-router.get("/holidays", getHolidays);
-router.get("/locations", getLocations);
-router.get("/fInstitutions", getFInstitutions);
+router.get("", controller.getAdministrationData);
+router.get("/positions", controller.getPositions);
+router.get("/departments", controller.getDepartments);
+router.get("/holidays", controller.getHolidays);
+router.get("/locations", controller.getLocations);
+router.get("/fInstitutions", controller.getFInstitutions);
+router.get("/allowances", controller.getAllowances);
+router.get("/deductions", controller.getDeductions);
+router.get("/userRoles", controller.getUserRoles);
+router.get("/permissions", controller.getPermissions);
 
 //Create
-router.post("/position", addPosition);
-router.post("/department", addDepartment);
-router.post("/holiday", addHoliday);
-router.post("/location", addLocation);
-router.post("/fInstitution", addFInstitution);
+router.post("/position", controller.addPosition);
+router.post("/department", controller.addDepartment);
+router.post("/holiday", controller.addHoliday);
+router.post("/location", controller.addLocation);
+router.post("/fInstitution", controller.addFInstitution);
+router.post("/allowance", controller.addAllowance);
+router.post("/deduction", controller.addDeduction);
+router.post("/userRole", controller.addUserRole);
+router.post("/userRole/addPermission", controller.addPermissionToRole);
 
 //Update
-router.put("/position", updatePosition);
-router.put("/department", updateDepartment);
-router.put("/holiday", updateHoliday);
-router.put("/location", updateLocation);
-router.put("/fInstitution", updateFInstitution);
+router.put("/position", controller.updatePosition);
+router.put("/department", controller.updateDepartment);
+router.put("/holiday", controller.updateHoliday);
+router.put("/location", controller.updateLocation);
+router.put("/fInstitution", controller.updateFInstitution);
+router.put("/allowance", controller.updateAllowance);
+router.put("/deduction", controller.updateDeduction);
+router.put("/userRole", controller.updateUserRole);
 
 //Delete
-router.delete("/position/:positionId", removePosition);
-router.delete("/department/:departmentId", removeDepartment);
-router.delete("/holiday/:holidayId", removeHoliday);
-router.delete("/location/:locationId", removeLocation);
-router.delete("/fInstitution/:fInstitutionId", removeFInstitution);
+router.delete("/position/:positionId", controller.removePosition);
+router.delete("/department/:departmentId", controller.removeDepartment);
+router.delete("/holiday/:holidayId", controller.removeHoliday);
+router.delete("/location/:locationId", controller.removeLocation);
+router.delete("/fInstitution/:fInstitutionId", controller.removeFInstitution);
+router.delete("/allowance/:allowanceId", controller.removeAllowance);
+router.delete("/deduction/:deductionId", controller.removeDeduction);
+router.delete("/userRole/:userRoleId", controller.removeUserRole);
 
 module.exports = router;
