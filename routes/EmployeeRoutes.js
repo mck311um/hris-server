@@ -30,6 +30,7 @@ router.use(requireAuth);
 
 router.get("", getEmployees);
 router.post("", addEmployee);
+router.post("/bulk", addEmployee);
 router.put("", updateEmployee);
 router.delete("", removeEmployee);
 

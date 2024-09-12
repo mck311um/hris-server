@@ -79,8 +79,72 @@ const addEmployee = async (req, res) => {
   }
 };
 
+const addEmployees = async (req, res) => {
+  const { clientDB, clientCode } = req;
+  const employeeDataArray = req.body; // Expecting an array of employee objects
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const results = [];
+
+    for (const employeeData of employeeDataArray) {
+      const lastNamePrefix = employeeData.lastName.slice(0, 3).toUpperCase();
+      const firstNamePrefix = employeeData.firstName.slice(0, 1).toUpperCase();
+      const idPrefix = `${lastNamePrefix}${firstNamePrefix}`;
+
+      const lastEmployee = await Employee.findOne({
+        employeeId: { $regex: `^${idPrefix}` },
+      }).sort({ employeeId: -1 });
+
+      let newEmployeeId;
+      if (lastEmployee) {
+        const lastId = parseInt(lastEmployee.employeeId.slice(4), 10);
+        newEmployeeId = `${idPrefix}${(lastId + 1)
+          .toString()
+          .padStart(3, "0")}`;
+      } else {
+        newEmployeeId = `${idPrefix}001`;
+      }
+      employeeData.employeeId = newEmployeeId;
+
+      const newEmployee = new Employee(employeeData);
+      await newEmployee.save();
+      await createS3Folder(clientCode, newEmployee.employeeId);
+
+      results.push(newEmployee);
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
 const updateEmployee = async (req, res) => {};
 const removeEmployee = async (req, res) => {};
+
+const getUsers = async (req, res) => {
+  const { clientDB } = req;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const User = getModel(companyDb, "User", "../models/user.js");
+
+    const users = await User.find().select(
+      "userName roleId employeeId requirePasswordChange"
+    );
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
 
 const createS3Folder = async (clientCode, empId) => {
   const folderKey = `${clientCode}/Employees/${empId}/`;
@@ -102,6 +166,8 @@ const createS3Folder = async (clientCode, empId) => {
 module.exports = {
   getEmployees,
   addEmployee,
+  addEmployees,
   updateEmployee,
   removeEmployee,
+  getUsers,
 };
