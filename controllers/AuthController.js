@@ -1,9 +1,15 @@
 const mongoose = require("mongoose");
 const Client = require("../models/client");
 const User = require("../models/user");
+const Permission = require("../models/permission");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+
+const getModel = (db, modelName, schemaPath) => {
+  const schema = require(schemaPath).schema;
+  return db.model(modelName, schema, modelName.toLowerCase() + "s");
+};
 
 const addUser = async (req, res) => {
   const { clientCode, username, password } = req.body;
@@ -61,8 +67,21 @@ const login = async (req, res) => {
 
     const companyDb = mongoose.connection.useDb(client.dbName);
     const DynamicUserModel = companyDb.model("User", User.schema, "users");
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+
     const user = await DynamicUserModel.findOne({
       userName: username.toLowerCase(),
+    }).populate({
+      path: "roleId",
+      populate: {
+        path: "permissions",
+        model: "Permission",
+        select: "permission _id",
+      },
     });
 
     if (!user) {
@@ -82,9 +101,16 @@ const login = async (req, res) => {
       }
     );
 
+    const permissions = user.roleId.permissions.map((permission) => ({
+      permissionId: permission._id,
+      permission: permission.permission,
+    }));
+
     const userData = {
       userId: user._id,
       username: user.userName,
+      userRole: user.roleId.userRole,
+      permissions: permissions,
       clientCode: client.clientCode,
       clientLocation: client.clientLocation,
       client: client.client,
