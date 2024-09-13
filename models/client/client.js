@@ -7,6 +7,11 @@ const clientSchema = new Schema({
   dbName: { type: String, required: true },
   paymentStatus: { type: String, default: "active" },
   clientLocation: { type: String },
+  openDays: [{ type: String }],
+  address: { type: String },
+  contactPerson: { type: String },
+  contactNumber: { type: String },
+  email: { type: String },
 });
 
 const collection = "clients";

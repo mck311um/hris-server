@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const Client = require("../models/client");
+const Client = require("../models/client/client");
 const mongoose = require("mongoose");
 
 const requireAuth = async (req, res, next) => {

@@ -34,6 +34,7 @@ router.get("/allowances", controller.getAllowances);
 router.get("/deductions", controller.getDeductions);
 router.get("/userRoles", controller.getUserRoles);
 router.get("/permissions", controller.getPermissions);
+router.get("/userRole/permissions/:userRoleId", controller.getRolePermissions);
 
 //Create
 router.post("/position", controller.addPosition);
@@ -65,5 +66,9 @@ router.delete("/fInstitution/:fInstitutionId", controller.removeFInstitution);
 router.delete("/allowance/:allowanceId", controller.removeAllowance);
 router.delete("/deduction/:deductionId", controller.removeDeduction);
 router.delete("/userRole/:userRoleId", controller.removeUserRole);
+router.delete(
+  "/userRole/removePermission/:userRoleId/:permissionId",
+  controller.removePermissionFromRole
+);
 
 module.exports = router;

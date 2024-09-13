@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Client = require("../models/client");
+const Client = require("../models/client/client");
 const User = require("../models/user");
 const Permission = require("../models/permission");
 const bcrypt = require("bcrypt");

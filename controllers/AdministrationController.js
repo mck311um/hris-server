@@ -1097,6 +1097,28 @@ const getUserRoles = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+const getRolePermissions = async (req, res) => {
+  const { clientDB } = req;
+  const { userRoleId } = req.params;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const userRole = await UserRole.findById(userRoleId).populate({
+      path: "permissions",
+    });
+    if (!userRole)
+      return res.status(404).json({ message: "User Role not found" });
+    res.json(userRole.permissions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
 const addUserRole = async (req, res) => {
   const { clientDB } = req;
   const { userRole, description, isActive } = req.body;
@@ -1191,6 +1213,36 @@ const addPermissionToRole = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const removePermissionFromRole = async (req, res) => {
+  const { clientDB } = req;
+  const { userRoleId, permissionId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const UserRole = getModel(
+      companyDb,
+      "UserRole",
+      "../models/administration/userRole"
+    );
+    const userRole = await UserRole.findById(userRoleId).populate({
+      path: "permissions",
+    });
+
+    if (!userRole)
+      return res.status(404).json({ message: "User Role not found" });
+
+    const index = userRole.permissions.indexOf(permissionId);
+    if (index === -1)
+      return res.status(404).json({ message: "Permission not found" });
+
+    userRole.permissions.splice(index, 1);
+    await userRole.save();
+
+    res.json(userRole);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+    console.error(error);
+  }
+};
 
 //Permissions
 const getPermissions = async (req, res) => {
@@ -1212,39 +1264,41 @@ const getPermissions = async (req, res) => {
 };
 
 module.exports = {
-  getAdministrationData,
-  getPositions,
-  addPosition,
-  removePosition,
-  updatePosition,
-  getDepartments,
-  addDepartment,
-  removeDepartment,
-  updateDepartment,
-  getHolidays,
-  addHoliday,
-  removeHoliday,
-  updateHoliday,
-  getLocations,
-  addLocation,
-  removeLocation,
-  updateLocation,
-  getFInstitutions,
-  addFInstitution,
-  removeFInstitution,
-  updateFInstitution,
-  getAllowances,
   addAllowance,
-  removeAllowance,
-  updateAllowance,
-  getDeductions,
   addDeduction,
-  removeDeduction,
-  updateDeduction,
-  getUserRoles,
-  addUserRole,
-  removeUserRole,
-  updateUserRole,
-  getPermissions,
+  addDepartment,
+  addFInstitution,
+  addHoliday,
+  addLocation,
   addPermissionToRole,
+  addPosition,
+  addUserRole,
+  getAdministrationData,
+  getAllowances,
+  getDeductions,
+  getDepartments,
+  getFInstitutions,
+  getHolidays,
+  getLocations,
+  getPermissions,
+  getPositions,
+  getRolePermissions,
+  getUserRoles,
+  removeAllowance,
+  removeDeduction,
+  removeDepartment,
+  removeFInstitution,
+  removeHoliday,
+  removeLocation,
+  removePermissionFromRole,
+  removePosition,
+  removeUserRole,
+  updateAllowance,
+  updateDeduction,
+  updateDepartment,
+  updateFInstitution,
+  updateHoliday,
+  updateLocation,
+  updatePosition,
+  updateUserRole,
 };
