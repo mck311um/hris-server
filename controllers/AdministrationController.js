@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Permission = require("../models/permission");
+const Sentry = require("@sentry/node");
 
 const formatDate = (date) => {
   const year = date.getUTCFullYear();
@@ -290,6 +291,7 @@ const getAdministrationData = async (req, res) => {
       attendanceStatuses,
     });
   } catch (err) {
+    Sentry.captureException(err);
     res.status(500).json({ message: err.message });
   }
 };

@@ -1,14 +1,18 @@
+require("./services/instrument");
 const express = require("express");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const Sentry = require("@sentry/node");
 
 dotenv.config();
 
 const app = express();
 const port = 5001;
+
+Sentry.setupExpressErrorHandler(app);
 
 mongoose
   .connect(process.env.MONGO_URL, {
@@ -27,6 +31,11 @@ app.use("/employee", require("./routes/EmployeeRoutes"));
 app.use("/client", require("./routes/ClientRoutes"));
 
 require("./jobs/attendanceJob");
+
+app.use(function onError(err, req, res, next) {
+  res.statusCode = 500;
+  res.json({ error: res.sentry });
+});
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
