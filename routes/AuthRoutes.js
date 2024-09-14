@@ -9,6 +9,8 @@ const allowedOrigins = [
   "https://devhris.vercel.app",
 ];
 
+router.options("*", cors());
+
 router.use(
   cors({
     credentials: true,
@@ -24,8 +26,6 @@ router.use(
     },
   })
 );
-
-router.options("*", cors());
 
 router.post("/login", login);
 router.post("/register", addUser);

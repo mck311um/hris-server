@@ -10,6 +10,9 @@ const allowedOrigins = [
   "https://hris.devvize.com",
   "https://devhris.vercel.app",
 ];
+
+router.options("*", cors());
+
 router.use(
   cors({
     credentials: true,
@@ -23,7 +26,6 @@ router.use(
   })
 );
 
-router.options("*", cors());
 router.use(requireAuth);
 
 router.get("", controller.getEmployees);
