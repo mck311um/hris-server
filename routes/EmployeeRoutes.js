@@ -5,8 +5,11 @@ const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 const controller = require("../controllers/EmployeeController");
 
-const allowedOrigins = ["http://localhost:5173"];
-
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://hris.devvize.com",
+  "https://devhris.vercel.app/",
+];
 router.use(
   cors({
     credentials: true,
