@@ -192,6 +192,18 @@ const getAdministrationData = async (req, res) => {
           description: userRole.description,
         })
       ),
+      fetchAndTransformData(
+        companyDb,
+        "AttendanceStatus",
+        "../models/administration/attendanceStatus",
+        (attendanceStatus) => ({
+          statusId: attendanceStatus._id,
+          status: attendanceStatus.status,
+          description: attendanceStatus.description,
+          isActive: attendanceStatus.isActive,
+          isPaid: attendanceStatus.isPaid,
+        })
+      ),
     ]);
 
     const [
@@ -210,6 +222,7 @@ const getAdministrationData = async (req, res) => {
       allowances,
       deductions,
       userRoles,
+      attendanceStatuses,
     ] = data;
 
     const permissionsRaw = await Permission.find().sort({ permission: 1 });
@@ -274,6 +287,7 @@ const getAdministrationData = async (req, res) => {
       deductions,
       userRoles,
       permissions,
+      attendanceStatuses,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1263,8 +1277,119 @@ const getPermissions = async (req, res) => {
   }
 };
 
+//Attendance Statuses
+const getAttendanceStatuses = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const AttendanceStatus = getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+    const attendanceStatusesRaw = await AttendanceStatus.find();
+    const attendanceStatuses = attendanceStatusesRaw.map(
+      (attendanceStatus) => ({
+        statusId: attendanceStatus._id,
+        status: attendanceStatus.status,
+        description: attendanceStatus.description,
+        isActive: attendanceStatus.isActive,
+        isPaid: attendanceStatus.isPaid,
+      })
+    );
+    res.json(attendanceStatuses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+const addAttendanceStatus = async (req, res) => {
+  const { clientDB } = req;
+  const { status, description, isActive, isPaid } = req.body;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceStatus = getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+
+    const newAttendanceStatus = new AttendanceStatus({
+      status,
+      description,
+      isActive,
+      isPaid,
+    });
+
+    await newAttendanceStatus.save();
+
+    res.json(newAttendanceStatus);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+const updateAttendanceStatus = async (req, res) => {
+  const { clientDB } = req;
+  const { statusId, status, description, isActive, isPaid } = req.body;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceStatus = getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+
+    const updatedAttendanceStatus = await AttendanceStatus.findByIdAndUpdate(
+      statusId,
+      { statusId, status, isActive, isPaid, description },
+      { new: true }
+    );
+
+    if (!updatedAttendanceStatus) {
+      return res.status(404).json({ message: "Attendance status not found" });
+    }
+
+    res.json(updatedAttendanceStatus);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+const removeAttendanceStatus = async (req, res) => {
+  const { clientDB } = req;
+  const { statusId } = req.params;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceStatus = getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+
+    const deletedAttendanceStatus = await AttendanceStatus.findByIdAndDelete(
+      statusId
+    );
+
+    if (!deletedAttendanceStatus) {
+      return res.status(404).json({ message: "Attendance status not found" });
+    }
+
+    res.json(deletedAttendanceStatus);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   addAllowance,
+  addAttendanceStatus,
   addDeduction,
   addDepartment,
   addFInstitution,
@@ -1275,6 +1400,7 @@ module.exports = {
   addUserRole,
   getAdministrationData,
   getAllowances,
+  getAttendanceStatuses,
   getDeductions,
   getDepartments,
   getFInstitutions,
@@ -1285,6 +1411,7 @@ module.exports = {
   getRolePermissions,
   getUserRoles,
   removeAllowance,
+  removeAttendanceStatus,
   removeDeduction,
   removeDepartment,
   removeFInstitution,
@@ -1294,6 +1421,7 @@ module.exports = {
   removePosition,
   removeUserRole,
   updateAllowance,
+  updateAttendanceStatus,
   updateDeduction,
   updateDepartment,
   updateFInstitution,

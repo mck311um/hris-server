@@ -30,7 +30,13 @@ const getEmployees = async (req, res) => {
       "../models/employee/employee.js"
     );
     const employees = await Employee.find({});
-    res.json(employees);
+
+    const employeesWithFullName = employees.map((employee) => ({
+      ...employee.toObject(),
+      fullName: `${employee.firstName} ${employee.lastName}`,
+    }));
+
+    res.json(employeesWithFullName);
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: error.message });
@@ -146,6 +152,136 @@ const getUsers = async (req, res) => {
   }
 };
 
+const getAttendanceRecords = async (req, res) => {
+  const { clientDB } = req;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceRecord = getModel(
+      companyDb,
+      "AttendanceRecord",
+      "../models/employee/attendanceRecord.js"
+    );
+
+    const AttendanceStatus = getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+
+    const attendanceRecordsRaw = await AttendanceRecord.find().populate(
+      "status"
+    );
+
+    const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
+      attendanceRecordId: attendanceRecord._id,
+      employeeId: attendanceRecord.employeeId,
+      date: attendanceRecord.date,
+      status: attendanceRecord.status.status,
+    }));
+
+    res.json(attendanceRecords);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+const getAttendanceRecordsByEmployeeId = async (req, res) => {
+  const { clientDB } = req;
+  const { month, year, employeeId } = req.body;
+
+  const monthPadded = month.padStart(2, "0");
+  const startDate = new Date(`${year}-${monthPadded}-01T00:00:00.000Z`);
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + 1);
+  endDate.setDate(0);
+  endDate.setHours(23, 59, 59, 999);
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceRecord = getModel(
+      companyDb,
+      "AttendanceRecord",
+      "../models/employee/attendanceRecord.js"
+    );
+
+    const AttendanceStatus = getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+
+    const attendanceRecordsRaw = await AttendanceRecord.find({
+      employeeId: employeeId,
+      date: { $gte: startDate, $lte: endDate },
+    }).populate("status");
+
+    console.log(attendanceRecordsRaw);
+
+    const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
+      attendanceRecordId: attendanceRecord._id,
+      employeeId: attendanceRecord.employeeId,
+      date: attendanceRecord.date,
+      status: attendanceRecord.status.status,
+    }));
+
+    res.json(attendanceRecords);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+    console.log(error);
+  }
+};
+
+const updateAttendanceRecord = async (req, res) => {
+  const { clientDB } = req;
+  const { attendanceRecordId, status, notes, updatedBy } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceRecord = getModel(
+      companyDb,
+      "AttendanceRecord",
+      "../models/employee/attendanceRecord.js"
+    );
+
+    const updatedAttendanceRecord = await AttendanceRecord.findByIdAndUpdate(
+      attendanceRecordId,
+      {
+        status: status,
+        updatedBy: updatedBy,
+        notes: notes,
+        updatedAt: Date.now(),
+        updatedBy: updatedBy,
+      },
+      { new: true }
+    );
+
+    res.json(updatedAttendanceRecord);
+  } catch (error) {}
+};
+
+const updateAllEmployeesAttendanceRecord = async (req, res) => {
+  const { clientDB } = req;
+  const { status, date, updatedBy } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceRecord = getModel(
+      companyDb,
+      "AttendanceRecord",
+      "../models/employee/attendanceRecord.js"
+    );
+
+    const updatedCount = await AttendanceRecord.updateMany(
+      { date: date },
+      { status: status, updatedBy: updatedBy, updatedAt: Date.now() }
+    );
+
+    res.json({ updatedCount });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
 const createS3Folder = async (clientCode, empId) => {
   const folderKey = `${clientCode}/Employees/${empId}/`;
 
@@ -170,4 +306,8 @@ module.exports = {
   updateEmployee,
   removeEmployee,
   getUsers,
+  getAttendanceRecords,
+  updateAttendanceRecord,
+  updateAllEmployeesAttendanceRecord,
+  getAttendanceRecordsByEmployeeId,
 };

@@ -26,6 +26,8 @@ app.use("/administration", require("./routes/AdministrationRoutes"));
 app.use("/employee", require("./routes/EmployeeRoutes"));
 app.use("/client", require("./routes/ClientRoutes"));
 
+require("./jobs/attendanceJob");
+
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });

@@ -35,6 +35,7 @@ router.get("/deductions", controller.getDeductions);
 router.get("/userRoles", controller.getUserRoles);
 router.get("/permissions", controller.getPermissions);
 router.get("/userRole/permissions/:userRoleId", controller.getRolePermissions);
+router.get("/attendanceStatuses", controller.getAttendanceStatuses);
 
 //Create
 router.post("/position", controller.addPosition);
@@ -46,6 +47,7 @@ router.post("/allowance", controller.addAllowance);
 router.post("/deduction", controller.addDeduction);
 router.post("/userRole", controller.addUserRole);
 router.post("/userRole/addPermission", controller.addPermissionToRole);
+router.post("/attendanceStatus", controller.addAttendanceStatus);
 
 //Update
 router.put("/position", controller.updatePosition);
@@ -56,6 +58,7 @@ router.put("/fInstitution", controller.updateFInstitution);
 router.put("/allowance", controller.updateAllowance);
 router.put("/deduction", controller.updateDeduction);
 router.put("/userRole", controller.updateUserRole);
+router.put("/attendanceStatus", controller.updateAttendanceStatus);
 
 //Delete
 router.delete("/position/:positionId", controller.removePosition);
@@ -70,5 +73,6 @@ router.delete(
   "/userRole/removePermission/:userRoleId/:permissionId",
   controller.removePermissionFromRole
 );
+router.delete("/attendanceStatus", controller.removeAttendanceStatus);
 
 module.exports = router;
