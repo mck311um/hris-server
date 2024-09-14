@@ -8,7 +8,7 @@ const controller = require("../controllers/EmployeeController");
 const allowedOrigins = [
   "http://localhost:5173",
   "https://hris.devvize.com",
-  "https://devhris.vercel.app/",
+  "https://devhris.vercel.app",
 ];
 router.use(
   cors({
