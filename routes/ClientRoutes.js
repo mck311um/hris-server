@@ -10,21 +10,14 @@ const allowedOrigins = [
   "https://devhris.vercel.app",
 ];
 
-router.options("*", cors());
-
 router.use(
   cors({
     credentials: true,
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
   })
 );
 
+router.options("*", cors());
 router.use(requireAuth);
 
 router.get("/getClient/:clientCode", controller.getClient);

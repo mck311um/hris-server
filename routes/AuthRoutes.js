@@ -9,23 +9,14 @@ const allowedOrigins = [
   "https://devhris.vercel.app",
 ];
 
-router.options("*", cors());
-
 router.use(
   cors({
     credentials: true,
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
-        callback(null, true);
-      } else {
-        console.error(`Blocked by CORS. Origin: ${origin}`);
-        callback(
-          new Error("CORS policy does not allow access from this origin.")
-        );
-      }
-    },
+    origin: allowedOrigins,
   })
 );
+
+router.options("*", cors());
 
 router.post("/login", login);
 router.post("/register", addUser);
