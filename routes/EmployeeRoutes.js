@@ -26,10 +26,7 @@ router.get("/attendanceRecords", controller.getAttendanceRecords);
 
 router.post("", controller.addEmployee);
 router.post("/bulk", controller.addEmployee);
-router.post(
-  "/attendanceRecordByEmpId",
-  controller.getAttendanceRecordsByEmployeeId
-);
+router.post("/attendanceRecordByDate", controller.getAttendanceRecordsByDate);
 
 router.put("", controller.updateEmployee);
 router.put("/attendanceRecord", controller.updateAttendanceRecord);

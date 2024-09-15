@@ -168,9 +168,23 @@ const getAttendanceRecords = async (req, res) => {
       "../models/administration/attendanceStatus"
     );
 
-    const attendanceRecordsRaw = await AttendanceRecord.find().populate(
-      "status"
+    const startOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
     );
+    const endOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    );
+
+    const attendanceRecordsRaw = await AttendanceRecord.find({
+      date: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    }).populate("status");
 
     const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
       attendanceRecordId: attendanceRecord._id,
@@ -186,9 +200,9 @@ const getAttendanceRecords = async (req, res) => {
   }
 };
 
-const getAttendanceRecordsByEmployeeId = async (req, res) => {
+const getAttendanceRecordsByDate = async (req, res) => {
   const { clientDB } = req;
-  const { month, year, employeeId } = req.body;
+  const { month, year } = req.body;
 
   const monthPadded = month.padStart(2, "0");
   const startDate = new Date(`${year}-${monthPadded}-01T00:00:00.000Z`);
@@ -212,11 +226,8 @@ const getAttendanceRecordsByEmployeeId = async (req, res) => {
     );
 
     const attendanceRecordsRaw = await AttendanceRecord.find({
-      employeeId: employeeId,
       date: { $gte: startDate, $lte: endDate },
     }).populate("status");
-
-    console.log(attendanceRecordsRaw);
 
     const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
       attendanceRecordId: attendanceRecord._id,
@@ -309,5 +320,5 @@ module.exports = {
   getAttendanceRecords,
   updateAttendanceRecord,
   updateAllEmployeesAttendanceRecord,
-  getAttendanceRecordsByEmployeeId,
+  getAttendanceRecordsByDate,
 };
