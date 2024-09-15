@@ -43,6 +43,66 @@ const getEmployees = async (req, res) => {
   }
 };
 
+const getEmployeeDetailsByEmployeeId = async (req, res) => {
+  const { clientDB } = req;
+  const { employeeId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
+    const employeeDetailsRaw = await Employee.findOne({
+      employeeId: employeeId,
+    })
+      .populate({ path: "positionId" })
+      .populate({ path: "departmentId" });
+
+    if (employeeDetailsRaw) {
+      const hireDate = new Date(employeeDetailsRaw.hireDate);
+      const currentDate = new Date();
+
+      let yearsOfService = currentDate.getFullYear() - hireDate.getFullYear();
+      let monthsOfService = currentDate.getMonth() - hireDate.getMonth();
+
+      if (monthsOfService < 0) {
+        yearsOfService--;
+        monthsOfService += 12;
+      }
+
+      const employee = {
+        fullName: `${employeeDetailsRaw.firstName} ${employeeDetailsRaw.lastName}`,
+        position: employeeDetailsRaw.positionId.position,
+        department: employeeDetailsRaw.departmentId.department,
+        hireDate: employeeDetailsRaw.hireDate,
+        yearsOfService,
+        monthsOfService,
+        vacationBalance: 50,
+      };
+      res.json(employee);
+    } else {
+      res.status(404).json({ message: "Employee not found" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
 const addEmployee = async (req, res) => {
   const { clientDB, clientCode } = req;
 
@@ -293,6 +353,75 @@ const updateAllEmployeesAttendanceRecord = async (req, res) => {
   }
 };
 
+//Time Off
+const addTimeOffRequest = async (req, res) => {
+  const { clientDB } = req;
+  const { employeeId, days, leaveTypeId, notes } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const TimeOffRequest = getModel(
+      companyDb,
+      "TimeOffRequest",
+      "../models/employee/timeOfRequest.js"
+    );
+
+    const newTimeOffRequest = new TimeOffRequest({
+      employeeId,
+      days,
+      leaveTypeId,
+      notes,
+    });
+
+    await newTimeOffRequest.save();
+
+    res.json(newTimeOffRequest);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+const getTimeOffRequests = async (req, res) => {
+  const { clientDB } = req;
+  try {
+  } catch (error) {}
+};
+const getTimeOffRequestsByEmployeeId = async (req, res) => {
+  const { clientDB } = req;
+  const { employeeId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const TimeOffRequest = getModel(
+      companyDb,
+      "TimeOffRequest",
+      "../models/employee/timeOfRequest"
+    );
+
+    const LeaveType = getModel(
+      companyDb,
+      "LeaveType",
+      "../models/administration/leaveType"
+    );
+
+    const timeOffRequestsRaw = await TimeOffRequest.find({
+      employeeId: employeeId,
+    }).populate({ path: "leaveTypeId" });
+
+    const timeOffRequests = timeOffRequestsRaw.map((timeOffRequest) => {
+      return {
+        timeOffRequestId: timeOffRequest._id,
+        employeeId: timeOffRequest.employeeId,
+        days: timeOffRequest.days,
+        notes: timeOffRequest.notes,
+        status: timeOffRequest.status,
+        leaveType: timeOffRequest.leaveTypeId.leaveType,
+        dateMade: timeOffRequest.dateMade,
+      };
+    });
+
+    res.json(timeOffRequests);
+  } catch (error) {}
+};
+
 const createS3Folder = async (clientCode, empId) => {
   const folderKey = `${clientCode}/Employees/${empId}/`;
 
@@ -311,14 +440,18 @@ const createS3Folder = async (clientCode, empId) => {
 };
 
 module.exports = {
-  getEmployees,
   addEmployee,
   addEmployees,
-  updateEmployee,
-  removeEmployee,
-  getUsers,
   getAttendanceRecords,
-  updateAttendanceRecord,
-  updateAllEmployeesAttendanceRecord,
   getAttendanceRecordsByDate,
+  getEmployeeDetailsByEmployeeId,
+  getEmployees,
+  getUsers,
+  removeEmployee,
+  updateAllEmployeesAttendanceRecord,
+  updateAttendanceRecord,
+  updateEmployee,
+  addTimeOffRequest,
+  getTimeOffRequests,
+  getTimeOffRequestsByEmployeeId,
 };

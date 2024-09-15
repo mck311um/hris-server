@@ -23,10 +23,16 @@ router.use(requireAuth);
 
 router.get("", controller.getEmployees);
 router.get("/attendanceRecords", controller.getAttendanceRecords);
+router.get("/:employeeId", controller.getEmployeeDetailsByEmployeeId);
+router.get(
+  "/timeOffRequests/:employeeId",
+  controller.getTimeOffRequestsByEmployeeId
+);
 
 router.post("", controller.addEmployee);
 router.post("/bulk", controller.addEmployee);
 router.post("/attendanceRecordByDate", controller.getAttendanceRecordsByDate);
+router.post("/timeOffRequest", controller.addTimeOffRequest);
 
 router.put("", controller.updateEmployee);
 router.put("/attendanceRecord", controller.updateAttendanceRecord);

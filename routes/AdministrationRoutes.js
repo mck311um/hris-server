@@ -34,6 +34,7 @@ router.get("/userRoles", controller.getUserRoles);
 router.get("/permissions", controller.getPermissions);
 router.get("/userRole/permissions/:userRoleId", controller.getRolePermissions);
 router.get("/attendanceStatuses", controller.getAttendanceStatuses);
+router.get("/leaveTypes", controller.getLeaveTypes);
 
 //Create
 router.post("/position", controller.addPosition);
@@ -46,6 +47,7 @@ router.post("/deduction", controller.addDeduction);
 router.post("/userRole", controller.addUserRole);
 router.post("/userRole/addPermission", controller.addPermissionToRole);
 router.post("/attendanceStatus", controller.addAttendanceStatus);
+router.post("/leaveType", controller.addLeaveType);
 
 //Update
 router.put("/position", controller.updatePosition);
@@ -57,6 +59,7 @@ router.put("/allowance", controller.updateAllowance);
 router.put("/deduction", controller.updateDeduction);
 router.put("/userRole", controller.updateUserRole);
 router.put("/attendanceStatus", controller.updateAttendanceStatus);
+router.put("/leaveType", controller.updateLeaveType);
 
 //Delete
 router.delete("/position/:positionId", controller.removePosition);
@@ -72,5 +75,6 @@ router.delete(
   controller.removePermissionFromRole
 );
 router.delete("/attendanceStatus", controller.removeAttendanceStatus);
+router.delete("/leaveType/:leaveTypeId", controller.removeLeaveType);
 
 module.exports = router;

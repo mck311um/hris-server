@@ -107,6 +107,7 @@ const login = async (req, res) => {
     }));
 
     const userData = {
+      employeeId: user.employeeId,
       userId: user._id,
       username: user.userName,
       userRole: user.roleId.userRole,

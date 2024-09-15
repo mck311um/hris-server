@@ -20,7 +20,9 @@ router.use(
 router.options("*", cors());
 router.use(requireAuth);
 
-router.get("/getClient/:clientCode", controller.getClient);
+router.get("/:clientCode", controller.getClient);
+router.get("/getOpenDays/:clientCode", controller.getOpenDays);
+
 router.put("/updateClient/:clientCode", controller.updateClient);
 
 module.exports = router;

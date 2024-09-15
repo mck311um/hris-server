@@ -66,7 +66,25 @@ const updateClient = async (req, res) => {
   }
 };
 
+const getOpenDays = async (req, res) => {
+  const { clientCode } = req.params;
+
+  try {
+    const client = await Client.findOne({ clientCode });
+
+    if (!client) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    res.json(client.openDays);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   getClient,
   updateClient,
+  getOpenDays,
 };

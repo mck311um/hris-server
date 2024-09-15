@@ -205,6 +205,19 @@ const getAdministrationData = async (req, res) => {
           isPaid: attendanceStatus.isPaid,
         })
       ),
+      fetchAndTransformData(
+        companyDb,
+        "LeaveType",
+        "../models/administration/leaveType",
+        (leaveType) => ({
+          leaveTypeId: leaveType._id,
+          leaveType: leaveType.leaveType,
+          description: leaveType.description,
+          isActive: leaveType.isActive,
+          isPaid: leaveType.isPaid,
+          employeeRequested: leaveType.employeeRequested,
+        })
+      ),
     ]);
 
     const [
@@ -224,6 +237,7 @@ const getAdministrationData = async (req, res) => {
       deductions,
       userRoles,
       attendanceStatuses,
+      leaveTypes,
     ] = data;
 
     const permissionsRaw = await Permission.find().sort({ permission: 1 });
@@ -289,6 +303,7 @@ const getAdministrationData = async (req, res) => {
       userRoles,
       permissions,
       attendanceStatuses,
+      leaveTypes,
     });
   } catch (err) {
     Sentry.captureException(err);
@@ -1389,6 +1404,120 @@ const removeAttendanceStatus = async (req, res) => {
   }
 };
 
+//Leave Types
+const getLeaveTypes = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const LeaveType = getModel(
+      companyDb,
+      "LeaveType",
+      "../models/administration/leaveType"
+    );
+    const leaveTypesRaw = await LeaveType.find();
+    const leaveTypes = leaveTypesRaw.map((leaveType) => ({
+      leaveTypeId: leaveType._id,
+      leaveType: leaveType.leaveType,
+      description: leaveType.description,
+      isActive: leaveType.isActive,
+      isPaid: leaveType.isPaid,
+      employeeRequested: leaveType.employeeRequested,
+    }));
+    res.json(leaveTypes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+const addLeaveType = async (req, res) => {
+  const { clientDB } = req;
+  const { leaveType, description, isActive, isPaid, employeeRequested } =
+    req.body;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const LeaveType = getModel(
+      companyDb,
+      "LeaveType",
+      "../models/administration/leaveType"
+    );
+
+    const newLeaveType = new LeaveType({
+      leaveType,
+      description,
+      isActive,
+      isPaid,
+    });
+
+    await newLeaveType.save();
+
+    res.json(newLeaveType);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+const updateLeaveType = async (req, res) => {
+  const { clientDB } = req;
+  const {
+    leaveTypeId,
+    leaveType,
+    description,
+    isActive,
+    isPaid,
+    employeeRequested,
+  } = req.body;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const LeaveType = getModel(
+      companyDb,
+      "LeaveType",
+      "../models/administration/leaveType"
+    );
+    const updatedLeaveType = await LeaveType.findByIdAndUpdate(
+      leaveTypeId,
+      { leaveType, isActive, isPaid, description, employeeRequested },
+      { new: true }
+    );
+
+    if (!updatedLeaveType) {
+      return res.status(404).json({ message: "Leave Type not found" });
+    }
+
+    res.json(updatedLeaveType);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+const removeLeaveType = async (req, res) => {
+  const { clientDB } = req;
+  const { statusId } = req.params;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const LeaveType = getModel(
+      companyDb,
+      "LeaveType",
+      "../models/administration/leaveType"
+    );
+
+    const deletedLeaveType = await LeaveType.findByIdAndDelete(statusId);
+
+    if (!deletedLeaveType) {
+      return res.status(404).json({ message: "Leave Type not found" });
+    }
+
+    res.json(deletedLeaveType);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   addAllowance,
   addAttendanceStatus,
@@ -1431,4 +1560,8 @@ module.exports = {
   updateLocation,
   updatePosition,
   updateUserRole,
+  getLeaveTypes,
+  addLeaveType,
+  updateLeaveType,
+  removeLeaveType,
 };
