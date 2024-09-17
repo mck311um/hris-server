@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const e = require("cors");
 
 const awsBucketName = process.env.AWS_BUCKET_NAME;
 const awsRegion = process.env.AWS_REGION;
@@ -29,11 +30,86 @@ const getEmployees = async (req, res) => {
       "Employee",
       "../models/employee/employee.js"
     );
-    const employees = await Employee.find({});
+
+    const Department = getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
+    const Position = getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+
+    const EmploymentType = getModel(
+      companyDb,
+      "EmploymentType",
+      "../models/administration/employmentType"
+    );
+
+    const Location = getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+
+    const WorkStatus = getModel(
+      companyDb,
+      "WorkStatus",
+      "../models/administration/workStatus"
+    );
+
+    const employees = await Employee.find({})
+      .populate({ path: "positionId" })
+      .populate({ path: "departmentId" })
+      .populate({ path: "employmentTypeId" })
+      .populate({ path: "locationId" })
+      .populate({ path: "workStatusId" });
 
     const employeesWithFullName = employees.map((employee) => ({
-      ...employee.toObject(),
+      addressLine1: employee.addressLine1,
+      addressLine2: employee.addressLine2,
+      age: employee.age,
+      countryOfBirth: employee.countryOfBirth,
+      dateOfBirth: employee.dateOfBirth,
+      department: employee.departmentId.department,
+      departmentId: employee.departmentId._id,
+      email: employee.email,
+      emergencyContact1Name: employee.emergencyContact1Name,
+      emergencyContact1AddressLine1: employee.emergencyContact1AddressLine1,
+      emergencyContact1AddressLine2: employee.emergencyContact1AddressLine2,
+      emergencyContact1Email: employee.emergencyContact1Email,
+      emergencyContact1Number: employee.emergencyContact1Number,
+      emergencyContact1Parish: employee.emergencyContact1Parish,
+      emergencyContact1Relationship: employee.emergencyContact1Relationship,
+      emergencyContact1Village: employee.emergencyContact1Village,
+      employeeId: employee.employeeId,
+      employmentType: employee.employmentTypeId.employmentType,
+      employmentTypeId: employee.employmentTypeId._id,
+      firstName: employee.firstName,
       fullName: `${employee.firstName} ${employee.lastName}`,
+      gender: employee.gender,
+      hireDate: employee.hireDate,
+      hireDate: employee.hireDate,
+      homeNumber: employee.homeNumber,
+      homeNumber: employee.homeNumber,
+      isActive: employee.isActive,
+      lastName: employee.lastName,
+      location: employee.locationId.location,
+      locationId: employee.locationId._id,
+      maritalStatus: employee.maritalStatus,
+      middleName: employee.middleName,
+      mobileNumber: employee.mobileNumber,
+      parish: employee.parish,
+      position: employee.positionId.position,
+      positionId: employee.positionId._id,
+      socialSecurityNumber: employee.socialSecurityNumber,
+      terminationDate: employee.terminationDate,
+      village: employee.village,
+      workStatus: employee.workStatusId.workStatus,
+      workStatusId: employee.workStatusId._id,
     }));
 
     res.json(employeesWithFullName);
@@ -42,7 +118,6 @@ const getEmployees = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 const getEmployeeDetailsByEmployeeId = async (req, res) => {
   const { clientDB } = req;
   const { employeeId } = req.params;
@@ -85,13 +160,58 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
       }
 
       const employee = {
-        fullName: `${employeeDetailsRaw.firstName} ${employeeDetailsRaw.lastName}`,
-        position: employeeDetailsRaw.positionId.position,
+        addressLine1: employeeDetailsRaw.addressLine1,
+        addressLine2: employeeDetailsRaw.addressLine2,
+        age: employeeDetailsRaw.age,
+        countryOfBirth: employeeDetailsRaw.countryOfBirth,
+        dateOfBirth: employeeDetailsRaw.dateOfBirth,
         department: employeeDetailsRaw.departmentId.department,
+        departmentId: employeeDetailsRaw.departmentId._id,
+        email: employeeDetailsRaw.email,
+        emergencyContact1AddressLine1:
+          employeeDetailsRaw.emergencyContact1AddressLine1,
+        emergencyContact1AddressLine2:
+          employeeDetailsRaw.emergencyContact1AddressLine2,
+        emergencyContact1Email: employeeDetailsRaw.emergencyContact1Email,
+        emergencyContact1Name: employeeDetailsRaw.emergencyContact1Name,
+        emergencyContact1Number: employeeDetailsRaw.emergencyContact1Number,
+        emergencyContact1Parish: employeeDetailsRaw.emergencyContact1Parish,
+        emergencyContact1Relationship:
+          employeeDetailsRaw.emergencyContact1Relationship,
+        emergencyContact1Village: employeeDetailsRaw.emergencyContact1Village,
+        employeeId: employeeDetailsRaw.employeeId,
+        employmentType: employeeDetailsRaw.employmentTypeId.employmentType,
+        employmentTypeId: employeeDetailsRaw.employmentTypeId._id,
+        firstName: employeeDetailsRaw.firstName,
+        fullName: `${employeeDetailsRaw.firstName} ${employeeDetailsRaw.lastName}`,
+        gender: employeeDetailsRaw.gender,
         hireDate: employeeDetailsRaw.hireDate,
-        yearsOfService,
+        hireDate: employeeDetailsRaw.hireDate,
+        homeNumber: employeeDetailsRaw.homeNumber,
+        homeNumber: employeeDetailsRaw.homeNumber,
+        isActive: employeeDetailsRaw.isActive,
+        lastName: employeeDetailsRaw.lastName,
+        location: employeeDetailsRaw.locationId.location,
+        locationId: employeeDetailsRaw.locationId._id,
+        maritalStatus: employeeDetailsRaw.maritalStatus,
+        middleName: employeeDetailsRaw.middleName,
+        mobileNumber: employeeDetailsRaw.mobileNumber,
         monthsOfService,
+        parish: employeeDetailsRaw.parish,
+        position: employeeDetailsRaw.positionId.position,
+        positionId: employeeDetailsRaw.positionId._id,
+        socialSecurityNumber: employeeDetailsRaw.socialSecurityNumber,
+        terminationDate: employeeDetailsRaw.terminationDate,
         vacationBalance: 50,
+        village: employeeDetailsRaw.village,
+        workStatus: employeeDetailsRaw.workStatusId.workStatus,
+        workStatusId: employeeDetailsRaw.workStatusId._id,
+        yearsOfService,
+        socialSecurityNo: employeeDetailsRaw.socialSecurityNo,
+        payType: employeeDetailsRaw.payType,
+        payRate: employeeDetailsRaw.payRate,
+        accountNumber: employeeDetailsRaw.accountNumber,
+        fInstitutionId: employeeDetailsRaw.fInstitutionId,
       };
       res.json(employee);
     } else {
@@ -102,7 +222,6 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 const addEmployee = async (req, res) => {
   const { clientDB, clientCode } = req;
 
@@ -144,7 +263,6 @@ const addEmployee = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 const addEmployees = async (req, res) => {
   const { clientDB, clientCode } = req;
   const employeeDataArray = req.body; // Expecting an array of employee objects
@@ -192,10 +310,38 @@ const addEmployees = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+const updateEmployee = async (req, res) => {
+  const { clientDB } = req;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Employee = getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
 
-const updateEmployee = async (req, res) => {};
+    const employeeData = req.body;
+    const { employeeId } = req.body;
+
+    const employee = await Employee.findOneAndUpdate(
+      { employeeId },
+      employeeData,
+      { new: true }
+    ).exec();
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.json(employee);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
 const removeEmployee = async (req, res) => {};
 
+//Users
 const getUsers = async (req, res) => {
   const { clientDB } = req;
   try {
@@ -212,6 +358,7 @@ const getUsers = async (req, res) => {
   }
 };
 
+//Attendance
 const getAttendanceRecords = async (req, res) => {
   const { clientDB } = req;
   try {
@@ -259,7 +406,6 @@ const getAttendanceRecords = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 const getAttendanceRecordsByDate = async (req, res) => {
   const { clientDB } = req;
   const { month, year } = req.body;
@@ -302,7 +448,6 @@ const getAttendanceRecordsByDate = async (req, res) => {
     console.log(error);
   }
 };
-
 const updateAttendanceRecord = async (req, res) => {
   const { clientDB } = req;
   const { attendanceRecordId, status, notes, updatedBy } = req.body;
@@ -329,7 +474,6 @@ const updateAttendanceRecord = async (req, res) => {
     res.json(updatedAttendanceRecord);
   } catch (error) {}
 };
-
 const updateAllEmployeesAttendanceRecord = async (req, res) => {
   const { clientDB } = req;
   const { status, date, updatedBy } = req.body;
@@ -454,4 +598,5 @@ module.exports = {
   addTimeOffRequest,
   getTimeOffRequests,
   getTimeOffRequestsByEmployeeId,
+  updateEmployee,
 };
