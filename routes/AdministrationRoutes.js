@@ -5,11 +5,7 @@ const controller = require("../controllers/AdministrationController");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://hris.devvize.com",
-  "https://devhris.vercel.app",
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 
 router.use(
   cors({

@@ -5,11 +5,7 @@ const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 const controller = require("../controllers/EmployeeController");
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://hris.devvize.com",
-  "https://devhris.vercel.app",
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 
 router.use(
   cors({
@@ -28,15 +24,19 @@ router.get(
   "/timeOffRequests/:employeeId",
   controller.getTimeOffRequestsByEmployeeId
 );
+router.get("/records/sickLeave", controller.getSickLeaveRecords);
+router.get("/records/sickLeave/:recordId", controller.getSickLeaveData);
 
 router.post("", controller.addEmployee);
 router.post("/bulk", controller.addEmployee);
 router.post("/attendanceRecordByDate", controller.getAttendanceRecordsByDate);
 router.post("/timeOffRequest", controller.addTimeOffRequest);
+router.post("/records/sickLeave", controller.addSickLeaveRecord);
 
 router.put("", controller.updateEmployee);
 router.put("/attendanceRecord", controller.updateAttendanceRecord);
 router.put("/attendanceRecords", controller.updateAllEmployeesAttendanceRecord);
+router.put("/records/sickLeave", controller.updateSickLeaveRecord);
 
 router.delete("", controller.removeEmployee);
 

@@ -4,6 +4,7 @@ const User = require("../models/user");
 const Permission = require("../models/permission");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const utils = require("../utils/functions");
 require("dotenv").config();
 
 const getModel = (db, modelName, schemaPath) => {
@@ -115,6 +116,7 @@ const login = async (req, res) => {
       clientCode: client.clientCode,
       clientLocation: client.clientLocation,
       client: client.client,
+      portal: client.portal,
       token,
       activeTime: new Date().toISOString(),
     };
@@ -126,7 +128,57 @@ const login = async (req, res) => {
   }
 };
 
+const transferData = async (req, res) => {
+  const data = req.body;
+  try {
+    const client = await Client.findOne({ clientCode: data.clientCode });
+    const companyDb = mongoose.connection.useDb(client.dbName);
+
+    const TempData = getModel(companyDb, "TempData", "../models/tempData");
+
+    const updatedTempData = await TempData.findOneAndUpdate(
+      { username: data.username },
+      data,
+      { new: true, upsert: true }
+    );
+    res.status(200).json({
+      message: "Data transferred successfully",
+      data: updatedTempData,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const getTransferredData = async (req, res) => {
+  const { clientCode, username } = req.body;
+  try {
+    const client = await Client.findOne({ clientCode });
+    const companyDb = mongoose.connection.useDb(client.dbName);
+
+    const TempData = utils.getModel(
+      companyDb,
+      "TempData",
+      "../models/tempData"
+    );
+
+    const transferredData = await TempData.findOne({ username }).exec();
+
+    // await TempData.deleteMany({ username });
+
+    console.log(transferredData);
+
+    res.status(200).json(transferredData);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   addUser,
   login,
+  transferData,
+  getTransferredData,
 };

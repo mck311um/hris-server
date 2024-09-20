@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const e = require("cors");
+const { calculateSickLeave } = require("../functions/sickLeave");
+const Client = require("../models/client/client");
+const utils = require("../utils/functions");
 
 const awsBucketName = process.env.AWS_BUCKET_NAME;
 const awsRegion = process.env.AWS_REGION;
@@ -15,47 +17,42 @@ const s3 = new S3Client({
   region: awsRegion,
 });
 
-const getModel = (db, modelName, schemaPath) => {
-  const schema = require(schemaPath).schema;
-  return db.model(modelName, schema, modelName.toLowerCase() + "s");
-};
-
 const getEmployees = async (req, res) => {
   const { clientDB } = req;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
 
-    const Employee = getModel(
+    const Employee = utils.getModel(
       companyDb,
       "Employee",
       "../models/employee/employee.js"
     );
 
-    const Department = getModel(
+    const Department = utils.getModel(
       companyDb,
       "Department",
       "../models/administration/department"
     );
 
-    const Position = getModel(
+    const Position = utils.getModel(
       companyDb,
       "Position",
       "../models/administration/position"
     );
 
-    const EmploymentType = getModel(
+    const EmploymentType = utils.getModel(
       companyDb,
       "EmploymentType",
       "../models/administration/employmentType"
     );
 
-    const Location = getModel(
+    const Location = utils.getModel(
       companyDb,
       "Location",
       "../models/administration/location"
     );
 
-    const WorkStatus = getModel(
+    const WorkStatus = utils.getModel(
       companyDb,
       "WorkStatus",
       "../models/administration/workStatus"
@@ -122,20 +119,21 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
   const { clientDB } = req;
   const { employeeId } = req.params;
   try {
+    console.log("hit");
     const companyDb = mongoose.connection.useDb(clientDB);
-    const Employee = getModel(
+    const Employee = utils.getModel(
       companyDb,
       "Employee",
       "../models/employee/employee.js"
     );
 
-    const Position = getModel(
+    const Position = utils.getModel(
       companyDb,
       "Position",
       "../models/administration/position"
     );
 
-    const Department = getModel(
+    const Department = utils.getModel(
       companyDb,
       "Department",
       "../models/administration/department"
@@ -228,7 +226,7 @@ const addEmployee = async (req, res) => {
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
 
-    const Employee = getModel(
+    const Employee = utils.getModel(
       companyDb,
       "Employee",
       "../models/employee/employee.js"
@@ -269,7 +267,7 @@ const addEmployees = async (req, res) => {
 
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const Employee = getModel(
+    const Employee = utils.getModel(
       companyDb,
       "Employee",
       "../models/employee/employee.js"
@@ -314,7 +312,7 @@ const updateEmployee = async (req, res) => {
   const { clientDB } = req;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const Employee = getModel(
+    const Employee = utils.getModel(
       companyDb,
       "Employee",
       "../models/employee/employee.js"
@@ -346,7 +344,7 @@ const getUsers = async (req, res) => {
   const { clientDB } = req;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const User = getModel(companyDb, "User", "../models/user.js");
+    const User = utils.getModel(companyDb, "User", "../models/user.js");
 
     const users = await User.find().select(
       "userName roleId employeeId requirePasswordChange"
@@ -363,13 +361,13 @@ const getAttendanceRecords = async (req, res) => {
   const { clientDB } = req;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const AttendanceRecord = getModel(
+    const AttendanceRecord = utils.getModel(
       companyDb,
       "AttendanceRecord",
       "../models/employee/attendanceRecord.js"
     );
 
-    const AttendanceStatus = getModel(
+    const AttendanceStatus = utils.getModel(
       companyDb,
       "AttendanceStatus",
       "../models/administration/attendanceStatus"
@@ -396,7 +394,7 @@ const getAttendanceRecords = async (req, res) => {
     const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
       attendanceRecordId: attendanceRecord._id,
       employeeId: attendanceRecord.employeeId,
-      date: attendanceRecord.date,
+      date: utils.formatDate(attendanceRecord.date),
       status: attendanceRecord.status.status,
     }));
 
@@ -419,13 +417,13 @@ const getAttendanceRecordsByDate = async (req, res) => {
 
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const AttendanceRecord = getModel(
+    const AttendanceRecord = utils.getModel(
       companyDb,
       "AttendanceRecord",
       "../models/employee/attendanceRecord.js"
     );
 
-    const AttendanceStatus = getModel(
+    const AttendanceStatus = utils.getModel(
       companyDb,
       "AttendanceStatus",
       "../models/administration/attendanceStatus"
@@ -453,7 +451,7 @@ const updateAttendanceRecord = async (req, res) => {
   const { attendanceRecordId, status, notes, updatedBy } = req.body;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const AttendanceRecord = getModel(
+    const AttendanceRecord = utils.getModel(
       companyDb,
       "AttendanceRecord",
       "../models/employee/attendanceRecord.js"
@@ -479,7 +477,7 @@ const updateAllEmployeesAttendanceRecord = async (req, res) => {
   const { status, date, updatedBy } = req.body;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const AttendanceRecord = getModel(
+    const AttendanceRecord = utils.getModel(
       companyDb,
       "AttendanceRecord",
       "../models/employee/attendanceRecord.js"
@@ -503,7 +501,7 @@ const addTimeOffRequest = async (req, res) => {
   const { employeeId, days, leaveTypeId, notes } = req.body;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const TimeOffRequest = getModel(
+    const TimeOffRequest = utils.getModel(
       companyDb,
       "TimeOffRequest",
       "../models/employee/timeOfRequest.js"
@@ -534,13 +532,13 @@ const getTimeOffRequestsByEmployeeId = async (req, res) => {
   const { employeeId } = req.params;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const TimeOffRequest = getModel(
+    const TimeOffRequest = utils.getModel(
       companyDb,
       "TimeOffRequest",
       "../models/employee/timeOfRequest"
     );
 
-    const LeaveType = getModel(
+    const LeaveType = utils.getModel(
       companyDb,
       "LeaveType",
       "../models/administration/leaveType"
@@ -566,6 +564,308 @@ const getTimeOffRequestsByEmployeeId = async (req, res) => {
   } catch (error) {}
 };
 
+//Sick Leave
+const getSickLeaveRecords = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const SickLeaveRecord = utils.getModel(
+      companyDb,
+      "SickLeaveRecord",
+      "../models/employee/sickLeaveRecord.js"
+    );
+    const Employee = utils.getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+    const employees = await Employee.find({});
+    const sickLeaveRecordsRaw = await SickLeaveRecord.find({
+      isDeleted: false,
+    });
+
+    const employeeMap = new Map(
+      employees.map((employee) => [
+        employee.employeeId.toString(),
+        `${employee.firstName} ${employee.lastName}`,
+      ])
+    );
+
+    const sickLeaveRecords = sickLeaveRecordsRaw.map((sickLeaveRecord) => {
+      const fullName = employeeMap.get(sickLeaveRecord.employeeId.toString());
+      return {
+        recordId: sickLeaveRecord._id,
+        employeeId: sickLeaveRecord.employeeId,
+        fullName: fullName,
+        startDate: utils.formatDate(new Date(sickLeaveRecord.startDate)),
+        endDate: utils.formatDate(new Date(sickLeaveRecord.endDate)),
+        illness: sickLeaveRecord.illness,
+        notes: sickLeaveRecord.notes,
+        status: sickLeaveRecord.status,
+        totalDays: sickLeaveRecord.totalDays,
+      };
+    });
+
+    res.json(sickLeaveRecords);
+  } catch (error) {
+    console.error("Error fetching sick leave records:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const addSickLeaveRecord = async (req, res) => {
+  const { clientDB, clientCode } = req;
+  const { employeeId, startDate, endDate, illness, notes, fullyPaid } =
+    req.body;
+
+  try {
+    const client = await Client.findOne({ clientCode });
+
+    if (!client) {
+      throw new Error("No Client found in the database.");
+    }
+
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const SickLeaveRecord = utils.getModel(
+      companyDb,
+      "SickLeaveRecord",
+      "../models/employee/sickLeaveRecord.js"
+    );
+
+    const PayrollRecord = utils.getModel(
+      companyDb,
+      "PayrollRecord",
+      "../models/payroll/payrollRecord"
+    );
+
+    const EmployeePayRecord = utils.getModel(
+      companyDb,
+      "EmployeePayRecord",
+      "../models/payroll/empPayRecord"
+    );
+
+    const unpaidRecords = await PayrollRecord.find({
+      isPaid: false,
+    }).sort({ payDate: 1 });
+
+    const { totalDays, paidDays, isPaid, systemComment, benefits } =
+      await calculateSickLeave(
+        employeeId,
+        startDate,
+        endDate,
+        clientCode,
+        fullyPaid
+      );
+
+    const newSickLeaveRecord = new SickLeaveRecord({
+      employeeId,
+      startDate,
+      endDate,
+      illness,
+      notes,
+      totalDays,
+      paidDays,
+      isPaid,
+      benefits,
+      systemComment,
+    });
+
+    console.log(newSickLeaveRecord);
+    // await newSickLeaveRecord.save();
+
+    if (benefits > 0) {
+      if (client.payrollFrequency === "Monthly") {
+        const oldestUnpaidRecord = unpaidRecords[0] || null;
+        const nextUnpaidRecord = unpaidRecords[1] || null;
+
+        if (
+          oldestUnpaidRecord &&
+          new Date(endDate) > new Date(oldestUnpaidRecord.payDate)
+        ) {
+          console.log(benefits);
+          daysInFirstPayroll = utils.getDaysDifference(
+            startDate,
+            oldestUnpaidRecord.payDate
+          );
+          daysInNextPayroll = paidDays - daysInFirstPayroll;
+          dailyBenefits = (benefits / paidDays).toFixed(2);
+          const today = new Date();
+          const year = today.getFullYear();
+
+          if (nextUnpaidRecord) {
+            const newEmpPayRecord = new EmployeePayRecord({
+              payrollId: oldestUnpaidRecord.payrollId,
+              payAmount: (dailyBenefits * daysInFirstPayroll).toFixed(2),
+              payType: "SICK",
+              isPaid: false,
+              employeeId,
+              payDate: oldestUnpaidRecord.payDate,
+              referenceId: newSickLeaveRecord._id,
+            });
+
+            const secondEmpPayRecord = new EmployeePayRecord({
+              payrollId: nextUnpaidRecord.payrollId,
+              payAmount: (dailyBenefits * daysInNextPayroll).toFixed(2),
+              payType: "SICK",
+              isPaid: false,
+              employeeId,
+              payDate: nextUnpaidRecord.payDate,
+              referenceId: newSickLeaveRecord._id,
+            });
+            // await newEmpPayRecord.save();
+            // await secondEmpPayRecord.save();
+            console.log(newEmpPayRecord);
+            console.log(secondEmpPayRecord);
+          } else {
+            const newPayrollRecord = new PayrollRecord({
+              payrollStartDate: oldestUnpaidRecord.payDate,
+              payrollEndDate: utils.addDays(oldestUnpaidRecord.payDate, 29),
+              payDate: utils.getPayDate(
+                utils.addDays(oldestUnpaidRecord.payDate, 30)
+              ),
+              payrollId: `${year}-${oldestUnpaidRecord.payrollNumber + 1}`,
+              payrollNumber: oldestUnpaidRecord.payrollNumber + 1,
+            });
+
+            await newPayrollRecord.save();
+
+            const newEmpPayRecord = new EmployeePayRecord({
+              payrollId: oldestUnpaidRecord.payrollId,
+              payAmount: dailyBenefits * daysInFirstPayroll,
+              payType: "SICK",
+              isPaid: false,
+              employeeId,
+              payDate: oldestUnpaidRecord.payDate,
+              referenceId: newSickLeaveRecord._id,
+            });
+
+            const secondEmpPayRecord = new EmployeePayRecord({
+              payrollId: newPayrollRecord.payrollId,
+              payAmount: dailyBenefits * daysInNextPayroll,
+              payType: "SICK",
+              isPaid: false,
+              employeeId,
+              payDate: newPayrollRecord.payDate,
+              referenceId: newSickLeaveRecord._id,
+            });
+            // await newEmpPayRecord.save();
+            // await secondEmpPayRecord.save();
+
+            console.log(newEmpPayRecord);
+            console.log(secondEmpPayRecord);
+          }
+        } else if (oldestUnpaidRecord) {
+          const newEmpPayRecord = new EmployeePayRecord({
+            payrollId: oldestUnpaidRecord.payrollId,
+            payAmount: benefits,
+            payType: "SICK",
+            isPaid: false,
+            employeeId,
+            payDate: oldestUnpaidRecord.payDate,
+            referenceId: newSickLeaveRecord._id,
+          });
+          // await newEmpPayRecord.save();
+          console.log(newEmpPayRecord);
+        }
+      } else {
+        // Handle non-monthly payroll case
+      }
+    }
+
+    res.json(newSickLeaveRecord);
+  } catch (error) {
+    console.error("Error adding sick leave record:", error);
+    res.status(400).json({ message: "Bad Request" });
+  }
+};
+
+const getSickLeaveData = async (req, res) => {
+  const { clientDB, clientCode } = req;
+  const { recordId } = req.params;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+
+    const SickLeaveRecord = utils.getModel(
+      companyDb,
+      "SickLeaveRecord",
+      "../models/employee/sickLeaveRecord.js"
+    );
+
+    const EmployeePayRecord = utils.getModel(
+      companyDb,
+      "EmployeePayRecord",
+      "../models/payroll/empPayRecord"
+    );
+
+    const client = await Client.findOne({ clientCode });
+    const sickLeaveRecord = await SickLeaveRecord.findById(recordId);
+    let payRecords;
+    let sickPayRecords;
+
+    if (!client) {
+      throw new Error("No Client found in the database.");
+    }
+
+    if (client.payrollFrequency === "Monthly") {
+      const threeMonthsBefore = new Date(sickLeaveRecord.startDate);
+      threeMonthsBefore.setMonth(threeMonthsBefore.getMonth() - 3);
+
+      const employeeRecords = await EmployeePayRecord.find({
+        employeeId: sickLeaveRecord.employeeId,
+        payType: { $nin: ["SICK", "MAT"] },
+        payDate: {
+          $gte: threeMonthsBefore,
+          $lte: new Date(sickLeaveRecord.startDate),
+        },
+      });
+
+      const sickPayRecordsRaw = await EmployeePayRecord.find({
+        referenceId: sickLeaveRecord._id,
+      });
+
+      sickPayRecords = sickPayRecordsRaw.map((record) => {
+        return {
+          payrollId: record.payrollId,
+          payAmount: record.payAmount,
+        };
+      });
+
+      payRecords = employeeRecords.reduce((acc, record) => {
+        const existingRecord = acc.find(
+          (r) => r.payrollId === record.payrollId
+        );
+
+        if (existingRecord) {
+          existingRecord.payAmount += record.payAmount;
+        } else {
+          acc.push({
+            payrollId: record.payrollId,
+            payDate: record.payDate,
+            payAmount: record.payAmount,
+          });
+        }
+        return acc;
+      }, []);
+    } else {
+    }
+
+    res.json({
+      sickLeaveRecord,
+      payRecords,
+      sickPayRecords,
+    });
+  } catch (error) {
+    console.error("Error fetching sick leave data:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const updateSickLeaveRecord = async (req, res) => {};
+
 const createS3Folder = async (clientCode, empId) => {
   const folderKey = `${clientCode}/Employees/${empId}/`;
 
@@ -586,17 +886,22 @@ const createS3Folder = async (clientCode, empId) => {
 module.exports = {
   addEmployee,
   addEmployees,
+  addSickLeaveRecord,
+  addTimeOffRequest,
+  createS3Folder,
   getAttendanceRecords,
   getAttendanceRecordsByDate,
   getEmployeeDetailsByEmployeeId,
   getEmployees,
+  getSickLeaveData,
+  getSickLeaveRecords,
+  getTimeOffRequests,
+  getTimeOffRequestsByEmployeeId,
   getUsers,
   removeEmployee,
   updateAllEmployeesAttendanceRecord,
   updateAttendanceRecord,
   updateEmployee,
-  addTimeOffRequest,
-  getTimeOffRequests,
-  getTimeOffRequestsByEmployeeId,
   updateEmployee,
+  updateSickLeaveRecord,
 };

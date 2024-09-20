@@ -4,12 +4,7 @@ const controller = require("../controllers/ClientController");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://hris.devvize.com",
-  "https://devhris.vercel.app",
-];
-
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 router.use(
   cors({
     credentials: true,
@@ -21,6 +16,7 @@ router.options("*", cors());
 router.use(requireAuth);
 
 router.get("/:clientCode", controller.getClient);
+router.get("/portal/:clientCode", controller.getClientPortal);
 router.get("/getOpenDays/:clientCode", controller.getOpenDays);
 
 router.put("/updateClient/:clientCode", controller.updateClient);

@@ -12,6 +12,12 @@ const clientSchema = new Schema({
   contactPerson: { type: String },
   contactNumber: { type: String },
   email: { type: String },
+  annualSickLeave: { type: "number", default: 0 },
+  paidSickTenured: { type: "number", default: 180 },
+  payrollFrequency: { type: String },
+  initialPayroll: { type: Date, default: null },
+  payrollDay: { type: "number", default: 0 },
+  portal: { type: String },
 });
 
 const collection = "clients";
