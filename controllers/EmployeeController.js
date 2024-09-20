@@ -89,7 +89,6 @@ const getEmployees = async (req, res) => {
       fullName: `${employee.firstName} ${employee.lastName}`,
       gender: employee.gender,
       hireDate: employee.hireDate,
-      hireDate: employee.hireDate,
       homeNumber: employee.homeNumber,
       homeNumber: employee.homeNumber,
       isActive: employee.isActive,
@@ -863,8 +862,127 @@ const getSickLeaveData = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 const updateSickLeaveRecord = async (req, res) => {};
+
+//Probation
+const getEmployeesOnProbation = async (req, res) => {
+  const { clientDB } = req;
+
+  try {
+    const today = new Date();
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Department = utils.getModel(
+      companyDb,
+      "Department",
+      "../models/administration/department"
+    );
+
+    const Position = utils.getModel(
+      companyDb,
+      "Position",
+      "../models/administration/position"
+    );
+
+    const EmploymentType = utils.getModel(
+      companyDb,
+      "EmploymentType",
+      "../models/administration/employmentType"
+    );
+
+    const Location = utils.getModel(
+      companyDb,
+      "Location",
+      "../models/administration/location"
+    );
+
+    const WorkStatus = utils.getModel(
+      companyDb,
+      "WorkStatus",
+      "../models/administration/workStatus"
+    );
+
+    const Employee = utils.getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const employeesRaw = await Employee.find({})
+      .populate({ path: "positionId" })
+      .populate({ path: "departmentId" })
+      .populate({ path: "employmentTypeId" })
+      .populate({ path: "locationId" })
+      .populate({ path: "workStatusId" });
+
+    const employees = employeesRaw
+      .filter((employee) => employee.workStatusId.workStatus === "Probationary")
+      .map((employee) => ({
+        employeeId: employee.employeeId,
+        fullName: `${employee.firstName} ${employee.lastName}`,
+        position: employee.positionId.position,
+        hireDate: utils.formatDate(employee.hireDate),
+        probationEnd: utils.formatDate(
+          utils.addDays(employee.hireDate, employee.daysOfProbation)
+        ),
+        remainingDays: utils.getDaysDifference(
+          today,
+          utils.addDays(employee.hireDate, employee.daysOfProbation)
+        ),
+      }));
+
+    res.json(employees);
+  } catch (error) {
+    console.error("Error fetching employees on probation:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const updateEmployeeProbation = async (req, res) => {
+  const { clientDB } = req;
+  const { hireDate, fullName, probationEnd, employeeId, updatedBy, notes } =
+    req.body;
+
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Employee = utils.getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const AuditLog = utils.getModel(
+      companyDb,
+      "AuditLog",
+      "../models/auditLogs.js"
+    );
+
+    const days = utils.getDaysDifference(hireDate, probationEnd);
+
+    const employee = await Employee.findOneAndUpdate(
+      { employeeId },
+      { daysOfProbation: days },
+      { new: true }
+    );
+
+    if (!employee) {
+      throw new Error("Employee not found.");
+    }
+
+    const auditLog = new AuditLog({
+      action: `Updated probation period for employee ${fullName}`,
+      user: updatedBy,
+      date: new Date(),
+      reason: notes,
+    });
+
+    await auditLog.save();
+
+    res.json(employee);
+  } catch (error) {
+    console.error("Error updating employee probation:", error);
+    res.status(400).json({ message: "Bad Request" });
+  }
+};
 
 const createS3Folder = async (clientCode, empId) => {
   const folderKey = `${clientCode}/Employees/${empId}/`;
@@ -904,4 +1022,6 @@ module.exports = {
   updateEmployee,
   updateEmployee,
   updateSickLeaveRecord,
+  getEmployeesOnProbation,
+  updateEmployeeProbation,
 };

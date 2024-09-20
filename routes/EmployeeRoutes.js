@@ -26,12 +26,14 @@ router.get(
 );
 router.get("/records/sickLeave", controller.getSickLeaveRecords);
 router.get("/records/sickLeave/:recordId", controller.getSickLeaveData);
+router.get("/probation/getEmployees", controller.getEmployeesOnProbation);
 
 router.post("", controller.addEmployee);
 router.post("/bulk", controller.addEmployee);
 router.post("/attendanceRecordByDate", controller.getAttendanceRecordsByDate);
 router.post("/timeOffRequest", controller.addTimeOffRequest);
 router.post("/records/sickLeave", controller.addSickLeaveRecord);
+router.post("/probation/updateEmployee", controller.updateEmployeeProbation);
 
 router.put("", controller.updateEmployee);
 router.put("/attendanceRecord", controller.updateAttendanceRecord);

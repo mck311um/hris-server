@@ -57,6 +57,7 @@ const employeeSchema = new Schema({
   payType: { type: String, default: "" },
   payRate: { type: Number, default: 0.0 },
   accountNumber: { type: String, default: "" },
+  daysOfProbation: { type: Number, default: 0 },
   fInstitutionId: {
     type: Schema.Types.ObjectId,
     ref: "FInstitution",
