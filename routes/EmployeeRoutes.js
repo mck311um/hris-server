@@ -34,6 +34,7 @@ router.post("/attendanceRecordByDate", controller.getAttendanceRecordsByDate);
 router.post("/timeOffRequest", controller.addTimeOffRequest);
 router.post("/records/sickLeave", controller.addSickLeaveRecord);
 router.post("/probation/updateEmployee", controller.updateEmployeeProbation);
+router.post("/actionTimeOffRequest", controller.actionTimeOffRequest);
 
 router.put("", controller.updateEmployee);
 router.put("/attendanceRecord", controller.updateAttendanceRecord);

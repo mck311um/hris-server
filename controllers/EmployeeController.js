@@ -555,11 +555,31 @@ const getTimeOffRequestsByEmployeeId = async (req, res) => {
         notes: timeOffRequest.notes,
         status: timeOffRequest.status,
         leaveType: timeOffRequest.leaveTypeId.leaveType,
-        dateMade: timeOffRequest.dateMade,
+        dateMade: utils.formatDate(timeOffRequest.dateMade),
       };
     });
 
     res.json(timeOffRequests);
+  } catch (error) {}
+};
+const actionTimeOffRequest = async (req, res) => {
+  const { clientDB } = req;
+  const { timeOffRequestId, actionedBy, newStatus } = req.body;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const TimeOffRequest = utils.getModel(
+      companyDb,
+      "TimeOffRequest",
+      "../models/employee/timeOfRequest.js"
+    );
+
+    const updatedTimeOffRequest = await TimeOffRequest.findByIdAndUpdate(
+      timeOffRequestId,
+      { status: newStatus, actionedBy },
+      { new: true }
+    );
+
+    res.json(updatedTimeOffRequest);
   } catch (error) {}
 };
 
@@ -1024,4 +1044,5 @@ module.exports = {
   updateSickLeaveRecord,
   getEmployeesOnProbation,
   updateEmployeeProbation,
+  actionTimeOffRequest,
 };
