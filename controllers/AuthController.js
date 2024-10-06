@@ -165,9 +165,7 @@ const getTransferredData = async (req, res) => {
 
     const transferredData = await TempData.findOne({ username }).exec();
 
-    // await TempData.deleteMany({ username });
-
-    console.log(transferredData);
+    await TempData.deleteMany({ username });
 
     res.status(200).json(transferredData);
   } catch (error) {

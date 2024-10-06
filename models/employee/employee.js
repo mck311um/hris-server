@@ -54,6 +54,7 @@ const employeeSchema = new Schema({
     default: null,
   },
   salary: { type: Number, default: 0 },
+  profilePic: { type: String },
   payType: { type: String, default: "" },
   payRate: { type: Number, default: 0.0 },
   accountNumber: { type: String, default: "" },

@@ -106,11 +106,11 @@ const getEmployees = async (req, res) => {
       village: employee.village,
       workStatus: employee.workStatusId.workStatus,
       workStatusId: employee.workStatusId._id,
+      profilePic: employee.profilePic,
     }));
 
     res.json(employeesWithFullName);
   } catch (error) {
-    console.log(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -118,7 +118,6 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
   const { clientDB } = req;
   const { employeeId } = req.params;
   try {
-    console.log("hit");
     const companyDb = mongoose.connection.useDb(clientDB);
     const Employee = utils.getModel(
       companyDb,
@@ -209,6 +208,7 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
         payRate: employeeDetailsRaw.payRate,
         accountNumber: employeeDetailsRaw.accountNumber,
         fInstitutionId: employeeDetailsRaw.fInstitutionId,
+        profilePic: employeeDetailsRaw.profilePic,
       };
       res.json(employee);
     } else {

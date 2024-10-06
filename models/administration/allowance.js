@@ -12,5 +12,6 @@ const schema = new Schema({
 
 const collection = "allowances";
 
-const Model = mongoose.model("Allowance", schema, collection);
+const Model =
+  mongoose.models.Allowance || mongoose.model("Allowance", schema, collection);
 module.exports = Model;

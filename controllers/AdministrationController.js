@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Permission = require("../models/permission");
+const FInstitutionType = require("../models/administration/fInstitutionType");
 const Sentry = require("@sentry/node");
 
 const formatDate = (date) => {
@@ -306,7 +307,7 @@ const getAdministrationData = async (req, res) => {
       leaveTypes,
     });
   } catch (err) {
-    Sentry.captureException(err);
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };

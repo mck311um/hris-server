@@ -29,6 +29,7 @@ app.use("/auth", require("./routes/AuthRoutes"));
 app.use("/administration", require("./routes/AdministrationRoutes"));
 app.use("/employee", require("./routes/EmployeeRoutes"));
 app.use("/client", require("./routes/ClientRoutes"));
+app.use("/files", require("./routes/FileRoutes"));
 
 require("./jobs/attendanceJob");
 
