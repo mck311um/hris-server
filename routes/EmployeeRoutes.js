@@ -24,8 +24,15 @@ router.get(
   "/timeOffRequests/:employeeId",
   controller.getTimeOffRequestsByEmployeeId
 );
+router.get("/records/timeOffRequests", controller.getTimeOffRequests);
 router.get("/records/sickLeave", controller.getSickLeaveRecords);
 router.get("/records/sickLeave/:recordId", controller.getSickLeaveData);
+router.get("/records/leaveRecord", controller.getLeaveRecords);
+
+router.get(
+  "/records/leaveRecord/:employeeId",
+  controller.getLeaveRecordsByEmployeeId
+);
 router.get("/probation/getEmployees", controller.getEmployeesOnProbation);
 
 router.post("", controller.addEmployee);

@@ -13,6 +13,7 @@ const schema = new Schema({
   status: { type: String, default: "Pending" },
   actionedBy: { type: String },
   dateMade: { type: Date, default: new Date() },
+  approverComments: { type: String },
 });
 
 const collection = "timeOffRequests";

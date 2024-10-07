@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Client = require("../models/client/client");
+const utils = require("../utils/functions");
 
 const getModel = (db, modelName, schemaPath) => {
   const schema = require(schemaPath).schema;
@@ -85,6 +86,7 @@ async function calculateSickLeave(
   tenure = getEmployeeTenure(employeeDetails);
 
   await createAttendanceRecords(start, end, client, employeeDetails);
+  await createLeaveRecord(start, end, client, employeeDetails);
 
   if (tenure <= client.paidSickTenured) {
     systemComment =
@@ -168,6 +170,45 @@ async function createAttendanceRecords(startDate, endDate, client, employee) {
 
     currentDate.setDate(currentDate.getDate() + 1);
   }
+}
+
+async function createLeaveRecord(startDate, endDate, client, employee) {
+  const companyDb = mongoose.connection.useDb(client.dbName);
+  let currentDate = new Date(startDate);
+  const finalDate = new Date(endDate);
+  finalDate.setDate(finalDate.getDate());
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const LeaveType = utils.getModel(
+    companyDb,
+    "LeaveType",
+    "../models/administration/leaveType.js"
+  );
+
+  const LeaveRecord = utils.getModel(
+    companyDb,
+    "LeaveRecord",
+    "../models/employee/leaveRecord.js"
+  );
+
+  const leaveType = await LeaveType.findOne({
+    leaveType: "Sick Leave",
+  });
+
+  const days = [];
+  while (currentDate <= finalDate) {
+    days.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  const leaveRecord = new LeaveRecord({
+    employeeId: employee.employeeId,
+    status: leaveType._id,
+    days: days,
+  });
+
+  await leaveRecord.save();
 }
 
 async function calculateSickPay(
