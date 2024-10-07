@@ -4,6 +4,8 @@ const {
   GetObjectCommand,
   PutObjectCommand,
 } = require("@aws-sdk/client-s3");
+const mongoose = require("mongoose");
+const utils = require("../utils/functions");
 
 const awsBucketName = process.env.AWS_BUCKET_NAME;
 const awsRegion = process.env.AWS_REGION;
@@ -42,12 +44,31 @@ const listFilesInFolder = async (req, res, next) => {
 };
 
 const getProfilePicture = async (req, res) => {
-  const { clientCode } = req;
+  const { clientDB } = req;
   const { employeeId } = req.params;
   try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const Employee = utils.getModel(
+      companyDb,
+      "Employee",
+      "../models/employee/employee.js"
+    );
+
+    const employee = await Employee.findOne({
+      employeeId: employeeId,
+    });
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    if (!employee.profilePic) {
+      return res.status(404).json({ message: "Profile picture not found" });
+    }
+
     const params = {
       Bucket: awsBucketName,
-      Key: `${clientCode}/Employees/${employeeId}/Images/profilePic.jpg`,
+      Key: employee.profilePic,
     };
 
     const command = new GetObjectCommand(params);
