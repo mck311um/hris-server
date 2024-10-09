@@ -93,7 +93,7 @@ async function getTestClientAttendance() {
   }
 }
 
-cron.schedule("* * * * *", () => {
+cron.schedule("0 8 * * *", () => {
   console.log("Running Attendance Job");
   getTestClientAttendance();
   console.log("Job Completed Successfully");
