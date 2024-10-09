@@ -18,9 +18,11 @@ const s3 = new S3Client({
 });
 
 const getEmployees = async (req, res) => {
-  const { clientDB } = req;
+  const { clientDB, clientCode } = req;
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
+
+    const client = await Client.findOne({ clientCode });
 
     const Employee = utils.getModel(
       companyDb,
@@ -58,6 +60,18 @@ const getEmployees = async (req, res) => {
       "../models/administration/workStatus"
     );
 
+    const VacationTransaction = utils.getModel(
+      companyDb,
+      "VacationTransaction",
+      "../models/employee/vacationTransactions.js"
+    );
+
+    const SickLeaveRecord = utils.getModel(
+      companyDb,
+      "SickLeaveRecord",
+      "../models/employee/sickLeaveRecord.js"
+    );
+
     const employees = await Employee.find({})
       .populate({ path: "positionId" })
       .populate({ path: "departmentId" })
@@ -65,52 +79,89 @@ const getEmployees = async (req, res) => {
       .populate({ path: "locationId" })
       .populate({ path: "workStatusId" });
 
-    const employeesWithFullName = employees.map((employee) => ({
-      addressLine1: employee.addressLine1,
-      addressLine2: employee.addressLine2,
-      age: employee.age,
-      countryOfBirth: employee.countryOfBirth,
-      dateOfBirth: employee.dateOfBirth,
-      department: employee.departmentId.department,
-      departmentId: employee.departmentId._id,
-      email: employee.email,
-      emergencyContact1Name: employee.emergencyContact1Name,
-      emergencyContact1AddressLine1: employee.emergencyContact1AddressLine1,
-      emergencyContact1AddressLine2: employee.emergencyContact1AddressLine2,
-      emergencyContact1Email: employee.emergencyContact1Email,
-      emergencyContact1Number: employee.emergencyContact1Number,
-      emergencyContact1Parish: employee.emergencyContact1Parish,
-      emergencyContact1Relationship: employee.emergencyContact1Relationship,
-      emergencyContact1Village: employee.emergencyContact1Village,
-      employeeId: employee.employeeId,
-      employmentType: employee.employmentTypeId.employmentType,
-      employmentTypeId: employee.employmentTypeId._id,
-      firstName: employee.firstName,
-      fullName: `${employee.firstName} ${employee.lastName}`,
-      gender: employee.gender,
-      hireDate: employee.hireDate,
-      homeNumber: employee.homeNumber,
-      homeNumber: employee.homeNumber,
-      isActive: employee.isActive,
-      lastName: employee.lastName,
-      location: employee.locationId.location,
-      locationId: employee.locationId._id,
-      maritalStatus: employee.maritalStatus,
-      middleName: employee.middleName,
-      mobileNumber: employee.mobileNumber,
-      parish: employee.parish,
-      position: employee.positionId.position,
-      positionId: employee.positionId._id,
-      socialSecurityNumber: employee.socialSecurityNumber,
-      terminationDate: employee.terminationDate,
-      village: employee.village,
-      workStatus: employee.workStatusId.workStatus,
-      workStatusId: employee.workStatusId._id,
-      profilePic: employee.profilePic,
-    }));
+    const employeesWithFullName = await Promise.all(
+      employees.map(async (employee) => {
+        const currentYear = new Date().getFullYear();
+
+        const totalVacation = await VacationTransaction.aggregate([
+          {
+            $match: {
+              employeeId: employee.employeeId,
+            },
+          },
+          { $group: { _id: "$employeeId", totalValue: { $sum: "$value" } } },
+        ]);
+
+        const totalSickLeave = await SickLeaveRecord.aggregate([
+          {
+            $match: {
+              employeeId: employee.employeeId,
+              date: {
+                $gte: new Date(`${currentYear}-01-01`),
+                $lte: new Date(`${currentYear}-12-31`),
+              },
+            },
+          },
+          { $group: { _id: "$employeeId", totalValue: { $sum: "$paidDays" } } },
+        ]);
+
+        const vacationBalance =
+          totalVacation.length > 0 ? totalVacation[0].totalValue : 0;
+        const sickLeaveBalance =
+          client.annualSickLeave -
+          (totalSickLeave.length > 0 ? totalSickLeave[0].totalValue : 0);
+
+        return {
+          addressLine1: employee.addressLine1,
+          addressLine2: employee.addressLine2,
+          age: employee.age,
+          countryOfBirth: employee.countryOfBirth,
+          dateOfBirth: employee.dateOfBirth,
+          department: employee.departmentId.department,
+          departmentId: employee.departmentId._id,
+          email: employee.email,
+          emergencyContact1AddressLine1: employee.emergencyContact1AddressLine1,
+          emergencyContact1AddressLine2: employee.emergencyContact1AddressLine2,
+          emergencyContact1Email: employee.emergencyContact1Email,
+          emergencyContact1Name: employee.emergencyContact1Name,
+          emergencyContact1Number: employee.emergencyContact1Number,
+          emergencyContact1Parish: employee.emergencyContact1Parish,
+          emergencyContact1Relationship: employee.emergencyContact1Relationship,
+          emergencyContact1Village: employee.emergencyContact1Village,
+          employeeId: employee.employeeId,
+          employmentType: employee.employmentTypeId.employmentType,
+          employmentTypeId: employee.employmentTypeId._id,
+          firstName: employee.firstName,
+          fullName: `${employee.firstName} ${employee.lastName}`,
+          gender: employee.gender,
+          hireDate: utils.formatDate(employee.hireDate),
+          homeNumber: employee.homeNumber,
+          isActive: employee.isActive,
+          lastName: employee.lastName,
+          location: employee.locationId.location,
+          locationId: employee.locationId._id,
+          maritalStatus: employee.maritalStatus,
+          middleName: employee.middleName,
+          mobileNumber: employee.mobileNumber,
+          parish: employee.parish,
+          position: employee.positionId.position,
+          positionId: employee.positionId._id,
+          profilePic: employee.profilePic,
+          sickLeaveBalance,
+          socialSecurityNumber: employee.socialSecurityNumber,
+          terminationDate: employee.terminationDate,
+          vacationBalance,
+          village: employee.village,
+          workStatus: employee.workStatusId.workStatus,
+          workStatusId: employee.workStatusId._id,
+          reportsTo: employee.reportsTo,
+        };
+      })
+    );
 
     res.json(employeesWithFullName);
   } catch (error) {
+    console.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -202,8 +253,7 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
         firstName: employeeDetailsRaw.firstName,
         fullName: `${employeeDetailsRaw.firstName} ${employeeDetailsRaw.lastName}`,
         gender: employeeDetailsRaw.gender,
-        hireDate: employeeDetailsRaw.hireDate,
-        hireDate: employeeDetailsRaw.hireDate,
+        hireDate: utils.formatDate(employeeDetailsRaw.hireDate),
         homeNumber: employeeDetailsRaw.homeNumber,
         homeNumber: employeeDetailsRaw.homeNumber,
         isActive: employeeDetailsRaw.isActive,
@@ -230,6 +280,7 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
         accountNumber: employeeDetailsRaw.accountNumber,
         fInstitutionId: employeeDetailsRaw.fInstitutionId,
         profilePic: employeeDetailsRaw.profilePic,
+        reportsTo: employeeDetailsRaw.reportsTo,
       };
       res.json(employee);
     } else {
@@ -411,8 +462,6 @@ const getAttendanceRecords = async (req, res) => {
       },
     }).populate("status");
 
-    console.log(attendanceRecordsRaw);
-
     const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
       attendanceRecordId: attendanceRecord._id,
       employeeId: attendanceRecord.employeeId,
@@ -432,10 +481,11 @@ const getAttendanceRecordsByDate = async (req, res) => {
 
   const monthPadded = month.padStart(2, "0");
   const startDate = new Date(`${year}-${monthPadded}-01T00:00:00.000Z`);
-  const endDate = new Date(startDate);
-  endDate.setMonth(endDate.getMonth() + 1);
+
+  const endDate = new Date(`${year}-${monthPadded}-01T00:00:00.000Z`);
+  endDate.setMonth(startDate.getMonth() + 2);
   endDate.setDate(0);
-  endDate.setHours(23, 59, 59, 999);
+  endDate.setUTCHours(23, 59, 59, 999);
 
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
@@ -452,7 +502,10 @@ const getAttendanceRecordsByDate = async (req, res) => {
     );
 
     const attendanceRecordsRaw = await AttendanceRecord.find({
-      date: { $gte: startDate, $lte: endDate },
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
     }).populate("status");
 
     const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
@@ -513,6 +566,40 @@ const updateAllEmployeesAttendanceRecord = async (req, res) => {
     res.json({ updatedCount });
   } catch (error) {
     console.log(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+const getEmployeeAttendanceEvents = async (req, res) => {
+  const { clientDB } = req;
+  const { employeeId } = req.params;
+  try {
+    const companyDb = mongoose.connection.useDb(clientDB);
+    const AttendanceRecord = utils.getModel(
+      companyDb,
+      "AttendanceRecord",
+      "../models/employee/attendanceRecord.js"
+    );
+
+    const AttendanceStatus = utils.getModel(
+      companyDb,
+      "AttendanceStatus",
+      "../models/administration/attendanceStatus"
+    );
+
+    const attendanceRecordsRaw = await AttendanceRecord.find({
+      employeeId: employeeId,
+    }).populate("status");
+
+    const attendanceRecords = attendanceRecordsRaw.map((attendanceRecord) => ({
+      title: attendanceRecord.status.status,
+      start: utils.toUTC(attendanceRecord.date),
+      end: utils.toUTC(attendanceRecord.date),
+      allDay: true,
+    }));
+
+    res.json(attendanceRecords);
+  } catch (error) {
+    console.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -1344,4 +1431,5 @@ module.exports = {
   actionTimeOffRequest,
   getLeaveRecordsByEmployeeId,
   getLeaveRecords,
+  getEmployeeAttendanceEvents,
 };

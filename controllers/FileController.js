@@ -63,7 +63,7 @@ const getProfilePicture = async (req, res) => {
     }
 
     if (!employee.profilePic) {
-      return res.status(404).json({ message: "Profile picture not found" });
+      return res.status(201).json({ message: "Profile picture not found" });
     }
 
     const params = {

@@ -41,6 +41,7 @@ const employeeSchema = new Schema({
     default: null,
   },
   hireDate: { type: Date, default: Date.now },
+  effectiveDate: { type: Date, default: Date.now },
   terminationDate: { type: Date, default: null },
   isActive: { type: Boolean, default: true },
   employmentTypeId: {

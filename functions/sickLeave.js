@@ -142,6 +142,14 @@ async function createAttendanceRecords(startDate, endDate, client, employee) {
     "../models/employee/attendanceRecord.js"
   );
 
+  const AttendanceStatus = utils.getModel(
+    companyDb,
+    "AttendanceStatus",
+    "../models/administration/attendanceStatus"
+  );
+
+  const sickStatus = await AttendanceStatus.findOne({ status: "Sick" });
+
   while (currentDate <= finalDate) {
     const dayName = currentDate.toLocaleDateString("en-US", {
       weekday: "long",
@@ -156,7 +164,7 @@ async function createAttendanceRecords(startDate, endDate, client, employee) {
         {
           $set: {
             date: currentDate,
-            status: "66e46c1f1207609d25684666",
+            status: sickStatus._id,
             updatedAt: today,
             updatedBy: "System",
           },

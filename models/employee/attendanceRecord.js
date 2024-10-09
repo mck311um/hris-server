@@ -1,20 +1,21 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const schema = new Schema({
-  recordId: { type: String },
-  employeeId: { type: String, required: true },
-  date: { type: Date, required: true },
-  status: {
-    type: Schema.Types.ObjectId,
-    ref: "AttendanceStatus",
-    default: null,
+const schema = new Schema(
+  {
+    recordId: { type: String },
+    employeeId: { type: String, required: true },
+    date: { type: Date, required: true },
+    status: {
+      type: Schema.Types.ObjectId,
+      ref: "AttendanceStatus",
+      default: null,
+    },
+    updatedBy: { type: String },
+    notes: { type: String },
   },
-  createdAt: { type: Date, default: new Date() },
-  updatedAt: { type: Date, default: new Date() },
-  updatedBy: { type: String },
-  notes: { type: String },
-});
+  { timestamps: true }
+);
 
 const collection = "attendanceRecord";
 

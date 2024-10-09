@@ -19,6 +19,7 @@ router.use(requireAuth);
 
 router.get("", controller.getEmployees);
 router.get("/attendanceRecords", controller.getAttendanceRecords);
+
 router.get("/:employeeId", controller.getEmployeeDetailsByEmployeeId);
 router.get(
   "/timeOffRequests/:employeeId",
@@ -28,6 +29,7 @@ router.get("/records/timeOffRequests", controller.getTimeOffRequests);
 router.get("/records/sickLeave", controller.getSickLeaveRecords);
 router.get("/records/sickLeave/:recordId", controller.getSickLeaveData);
 router.get("/records/leaveRecord", controller.getLeaveRecords);
+router.get("/attendance/:employeeId", controller.getEmployeeAttendanceEvents);
 
 router.get(
   "/records/leaveRecord/:employeeId",

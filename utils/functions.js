@@ -52,6 +52,13 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+function toUTC(date) {
+  const utcDate = new Date(date);
+  return new Date(
+    utcDate.getTime() + utcDate.getTimezoneOffset() * 60000
+  ).toISOString();
+}
+
 module.exports = {
   getDaysDifference,
   isValidDate,
@@ -60,4 +67,5 @@ module.exports = {
   subtractDays,
   getModel,
   formatDate,
+  toUTC,
 };
