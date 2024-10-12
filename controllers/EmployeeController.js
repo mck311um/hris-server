@@ -116,7 +116,7 @@ const getEmployees = async (req, res) => {
           addressLine2: employee.addressLine2,
           age: employee.age,
           countryOfBirth: employee.countryOfBirth,
-          dateOfBirth: employee.dateOfBirth,
+          dateOfBirth: utils.formatDate(employee.dateOfBirth),
           department: employee.departmentId.department,
           departmentId: employee.departmentId._id,
           email: employee.email,
@@ -155,6 +155,7 @@ const getEmployees = async (req, res) => {
           workStatus: employee.workStatusId.workStatus,
           workStatusId: employee.workStatusId._id,
           reportsTo: employee.reportsTo,
+          title: employee.title,
         };
       })
     );

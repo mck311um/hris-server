@@ -4,13 +4,13 @@ const Client = require("../models/client/client");
 const utils = require("../utils/functions");
 
 const daysOfWeek = [
+  "Sunday",
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Saturday",
-  "Sunday",
 ];
 
 async function getTestClientAttendance() {
@@ -22,7 +22,7 @@ async function getTestClientAttendance() {
 
   console.log("Attendance for TEST is being simulated...");
   const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
 
   const dayName = daysOfWeek[today.getDay()];
   const companyDb = mongoose.connection.useDb(client.dbName);

@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Permission = require("../models/permission");
 const FInstitutionType = require("../models/administration/fInstitutionType");
 const Sentry = require("@sentry/node");
+const utils = require("../utils/functions");
 
 const formatDate = (date) => {
   const year = date.getUTCFullYear();
@@ -951,18 +952,22 @@ const getAllowances = async (req, res) => {
 const addAllowance = async (req, res) => {
   const { clientDB } = req;
   const { allowance, description, isActive } = req.body;
+
   try {
     const companyDb = mongoose.connection.useDb(clientDB);
-    const Allowance = getModel(
+
+    const EmployeeAllowance = utils.getModel(
       companyDb,
       "Allowance",
-      "../models/administration/allowance"
+      "../models/administration/allowance.js"
     );
-    const newAllowance = new Allowance({
+
+    const newAllowance = new EmployeeAllowance({
       allowance,
       description,
       isActive,
     });
+
     await newAllowance.save();
     res.json(newAllowance);
   } catch (error) {
