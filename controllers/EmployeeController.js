@@ -214,7 +214,9 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
     })
       .populate({ path: "positionId" })
       .populate({ path: "departmentId" })
-      .populate({ path: "locationId" });
+      .populate({ path: "employmentTypeId" })
+      .populate({ path: "locationId" })
+      .populate({ path: "workStatusId" });
 
     if (employeeDetailsRaw) {
       const hireDate = new Date(employeeDetailsRaw.hireDate);
@@ -233,7 +235,7 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
         addressLine2: employeeDetailsRaw.addressLine2,
         age: employeeDetailsRaw.age,
         countryOfBirth: employeeDetailsRaw.countryOfBirth,
-        dateOfBirth: employeeDetailsRaw.dateOfBirth,
+        dateOfBirth: utils.formatDate(employeeDetailsRaw.dateOfBirth),
         department: employeeDetailsRaw.departmentId.department,
         departmentId: employeeDetailsRaw.departmentId._id,
         email: employeeDetailsRaw.email,
@@ -282,6 +284,11 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
         fInstitutionId: employeeDetailsRaw.fInstitutionId,
         profilePic: employeeDetailsRaw.profilePic,
         reportsTo: employeeDetailsRaw.reportsTo,
+        title: employeeDetailsRaw.title,
+        employmentType: employeeDetailsRaw.employmentTypeId.employmentType,
+        employmentTypeId: employeeDetailsRaw.employmentTypeId._id,
+        workStatus: employeeDetailsRaw.workStatusId.workStatus,
+        workStatusId: employeeDetailsRaw.workStatusId._id,
       };
       res.json(employee);
     } else {
