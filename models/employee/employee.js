@@ -64,6 +64,12 @@ const employeeSchema = new Schema({
     ref: "FInstitution",
     default: null,
   },
+  effectiveDate: { type: Date, default: Date.now() },
+  scheduleId: {
+    type: Schema.Types.ObjectId,
+    ref: "PayrollSchedule",
+    default: null,
+  },
 });
 
 const collection = "employees";

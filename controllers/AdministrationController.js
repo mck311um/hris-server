@@ -220,6 +220,17 @@ const getAdministrationData = async (req, res) => {
           employeeRequested: leaveType.employeeRequested,
         })
       ),
+      fetchAndTransformData(
+        companyDb,
+        "PayrollSchedule",
+        "../models/payroll/payrollSchedule.js",
+        (schedule) => ({
+          scheduleId: schedule._id,
+          scheduleName: schedule.scheduleName,
+          frequency: schedule.frequency,
+          isActive: schedule.isActive,
+        })
+      ),
     ]);
 
     const [
@@ -240,6 +251,7 @@ const getAdministrationData = async (req, res) => {
       userRoles,
       attendanceStatuses,
       leaveTypes,
+      payrollSchedules,
     ] = data;
 
     const permissionsRaw = await Permission.find().sort({ permission: 1 });
@@ -287,7 +299,7 @@ const getAdministrationData = async (req, res) => {
       location.employeeCount = locationCounts[location.locationId] || 0;
     });
 
-    res.json({
+    res.status(201).json({
       positions,
       departments,
       departmentTypes,
@@ -306,6 +318,7 @@ const getAdministrationData = async (req, res) => {
       permissions,
       attendanceStatuses,
       leaveTypes,
+      payrollSchedules,
     });
   } catch (err) {
     console.error(err);

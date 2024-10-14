@@ -156,6 +156,8 @@ const getEmployees = async (req, res) => {
           workStatusId: employee.workStatusId._id,
           reportsTo: employee.reportsTo,
           title: employee.title,
+          scheduleId: employee.scheduleId,
+          effectiveDate: utils.formatDate(employee.effectiveDate),
         };
       })
     );
@@ -289,6 +291,8 @@ const getEmployeeDetailsByEmployeeId = async (req, res) => {
         employmentTypeId: employeeDetailsRaw.employmentTypeId._id,
         workStatus: employeeDetailsRaw.workStatusId.workStatus,
         workStatusId: employeeDetailsRaw.workStatusId._id,
+        scheduleId: employeeDetailsRaw.scheduleId,
+        effectiveDate: utils.formatDate(employeeDetailsRaw.effectiveDate),
       };
       res.json(employee);
     } else {
